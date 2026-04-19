@@ -210,6 +210,12 @@ Consolidate insights into MEMORY.md, then clean up fragmented or stale content.
 
 ---
 
+## Development
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for contributor setup, testing, adding new skills, commit conventions, and changesets.
+
+---
+
 ## Attribution
 
 Skill content improvements apply principles from [12-factor-agents](https://github.com/humanlayer/12-factor-agents) (Dex Horthy / [HumanLayer](https://github.com/humanlayer)). Commit conventions follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/). Version tracking uses [Changesets](https://github.com/changesets/changesets).
