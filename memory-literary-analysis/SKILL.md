@@ -1,11 +1,23 @@
 ---
 name: memory-literary-analysis
-description: "Analyze a complete literary work into a structured Basic Memory knowledge graph. Covers schema design, entity seeding, chapter-by-chapter processing, cross-referencing, validation, and visualization."
+description: "Analyze a complete literary work into a structured Basic Memory knowledge graph. Covers schema design, entity seeding, chapter-by-chapter processing, cross-referencing, validation, and visualization. Applies Factor 12 (stateless reducer at scale) and Factor 3 (seed entities as pre-fetch targets)."
 ---
 
 # Memory Literary Analysis
 
 Transform a complete literary work into a structured knowledge graph. Characters, themes, chapters, locations, symbols, and literary devices become interconnected notes — searchable, validatable, and visualizable.
+
+> **Factor 12 — Stateless Reducer at Scale:** This pipeline IS the stateless reducer pattern applied to literary analysis. Each chapter-processing session is a stateless reducer:
+>
+> 1. **Read state** — load the processing task note + any relevant entity stubs
+> 2. **Process** — analyze the current chapter batch, create/enrich notes
+> 3. **Write state** — update the task note (current batch, progress), write enriched entity notes
+> 4. **Exit** — the knowledge graph accumulates state; each agent session is stateless
+>
+> The knowledge graph grows across sessions. The agent starts fresh every time. The task note is the checkpoint that makes this work. Use the **memory-tasks** skill to create it.
+
+> **Factor 3 — Phase 1 Seed = Pre-fetch Pattern:** Creating entity stubs before processing chapters is the pre-fetch pattern applied to literary analysis. You create `[[wiki-link]]` targets in advance so future agents can traverse the graph immediately, without needing to search for entities that should exist. Seed first; enrich later.
+
 
 ## When to Use
 
@@ -19,8 +31,8 @@ Transform a complete literary work into a structured knowledge graph. Characters
 
 ```
 Phase 0: Setup         → project, schemas, directory structure
-Phase 1: Seed          → stub notes for known major entities
-Phase 2: Process       → chapter-by-chapter notes in batches
+Phase 1: Seed          → stub notes for known major entities (pre-fetch pattern)
+Phase 2: Process       → chapter-by-chapter notes in batches (stateless reducer loop)
 Phase 3: Cross-ref     → enrich arcs, add parallels, write analysis
 Phase 4: Validate      → schema checks, drift detection, consistency
 Phase 5: Visualize     → canvas files for character webs, timelines
@@ -222,10 +234,12 @@ Schema for literary technique and device notes.
   symbols/           # symbolic elements
   literary-devices/  # techniques and devices
   analysis/          # cross-cutting synthesis
-  tasks/             # processing tracker
+  tasks/             # processing tracker (critical for stateless reducer)
 ```
 
-## Phase 1: Seed Entities
+## Phase 1: Seed Entities (Pre-fetch Pattern)
+
+> **Factor 3 — Pre-fetch:** Seed entities before processing chapters. This creates `[[wiki-link]]` targets that resolve immediately during chapter processing, so each session can traverse the graph without needing to search for entities that should exist. Stubs are cheap to create; missing link targets break graph traversal.
 
 Before processing chapters, create stub notes for major entities so `[[wiki-links]]` resolve from the start.
 
@@ -265,7 +279,54 @@ Identify the work's major entities before you start reading. A good starting inv
 
 Stubs don't need to be complete — they give `[[wiki-link]]` targets and will be enriched during chapter processing.
 
-## Phase 2: Chapter Processing
+### Create the Processing Task
+
+Before any chapter processing begins, create a Task note to track progress across sessions:
+
+```python
+write_note(
+  title="<Work Name> - Literary Analysis",
+  directory="tasks",
+  note_type="Task",
+  metadata={
+    "status": "active",
+    "current_step": 1,
+    "steps": ["Phase 1: Seed entities", "Phase 2: Batch 1 (Ch 1-10)", "Phase 2: Batch 2 (Ch 11-20)", "..."]
+  },
+  tags=["task", "literary-analysis"],
+  content="""# <Work Name> - Literary Analysis
+
+## Context
+Processing <Work Name> into a Basic Memory knowledge graph.
+Current phase: [update as you progress]
+Last session: [update with what you did and where you stopped]
+
+## Steps
+1. [ ] Phase 1: Seed entities (schemas + stubs)
+2. [ ] Phase 2: Batch 1 (Ch 1-10)
+...
+
+## Relations
+- tracks [[<Work Name>]]"""
+)
+```
+
+This task note is your checkpoint across sessions. Update it before every `/compact` event.
+
+## Phase 2: Chapter Processing (Stateless Reducer Loop)
+
+### Session Start Protocol
+
+Each chapter-processing session begins the same way:
+
+```python
+# 1. Read state — find the processing task
+search_notes(note_types=["task"], status="active")
+read_note(identifier="tasks/work-name-literary-analysis")
+
+# 2. Validate step — confirm which batch to process next
+# 3. Continue — process the next unchecked batch
+```
 
 ### Source Text Preparation
 
@@ -284,6 +345,7 @@ Process ~10 chapters per batch to balance depth with progress. Group by narrativ
 | Final | Climax, resolution, epilogue |
 
 Adjust batch size based on chapter length and density. Short, action-heavy chapters can be batched in larger groups; long, philosophically dense chapters may need smaller batches.
+
 
 ### Per-Chapter Workflow
 
@@ -339,7 +401,16 @@ edit_note(
 )
 ```
 
-**4. Track progress** using the memory-tasks skill to create a processing task that survives context compaction.
+**4. Update the processing task** before ending the session:
+
+```python
+edit_note(
+  identifier="tasks/work-name-literary-analysis",
+  operation="find_replace",
+  find_text="- [ ] Phase 2: Batch 1 (Ch 1-10)",
+  content="- [x] Phase 2: Batch 1 (Ch 1-10)"
+)
+```
 
 ### What to Capture Per Chapter
 
@@ -371,7 +442,9 @@ After the structured observations are in place, consider adding interpretive pro
 - Include subjective opinions clearly marked as such ("In my reading...", "I find...")
 - Ground claims in textual evidence cited by chapter number
 
+
 The prose adds the interpretive texture that structured observations alone cannot capture.
+
 
 ## Phase 3: Cross-Referencing
 
@@ -405,7 +478,6 @@ Analysis of the work's narrative architecture.
 ...
 
 ## Relations
-- analyzes [[<Protagonist>]]
 - analyzes [[<Key Character>]]
 - explores [[<Central Theme>]]
 ..."""
@@ -426,6 +498,7 @@ During chapter processing, new minor characters, locations, and symbols will eme
 
 ```python
 # Validate each entity type
+
 schema_validate(noteType="Character")
 schema_validate(noteType="Theme")
 schema_validate(noteType="Chapter")
@@ -437,6 +510,7 @@ schema_validate(noteType="LiteraryDevice")
 ### Drift Detection
 
 ```python
+
 schema_diff(noteType="Character")
 # ... for each type
 ```
@@ -461,6 +535,7 @@ canvas(query="type:Character AND role:protagonist OR role:antagonist OR role:sup
 canvas(query="type:Theme")
 
 # Chapter timeline with key events
+
 canvas(query="type:Chapter", layout="timeline")
 ```
 

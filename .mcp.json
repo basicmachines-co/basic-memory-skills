@@ -1,14 +1,9 @@
 {
   "mcpServers": {
     "basic-memory": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "/Users/phernandez/dev/basicmachines/basic-memory",
-        "run",
-        "src/basic_memory/cli/main.py",
-        "mcp"
-      ]
+      "command": "uvx",
+      "args": ["basic-memory", "mcp"],
+      "env": {}
     }
   }
 }

@@ -1,11 +1,14 @@
 ---
 name: memory-notes
-description: "How to write well-structured Basic Memory notes: frontmatter, observations with semantic categories, relations with wiki-links, and best practices for building a rich knowledge graph. Use when creating or improving notes."
+description: "How to write well-structured Basic Memory notes: frontmatter, observations with semantic categories, relations with wiki-links, and best practices for building a rich knowledge graph. Includes context hygiene and pre-fetch patterns from 12-factor-agents (Factor 3). Use when creating or improving notes."
 ---
 
 # Memory Notes
 
 Write well-structured notes that Basic Memory can parse into a searchable knowledge graph. Every note is a markdown file with three key sections: frontmatter, observations, and relations.
+
+> **Factor 12 — Stateless Reducer:** Your Copilot CLI session is stateless. Notes are the state. If it's not in a note, it doesn't exist in the next session. Write early and often.
+
 
 ## Note Anatomy
 
@@ -245,6 +248,43 @@ edit_note(
 
 This preserves existing content and keeps the edit history clean.
 
+## Context Hygiene (Factor 3)
+
+> **Factor 3 — Own Your Context Window:** Notes that get returned to the LLM cost tokens. Every line in a note that enters context should earn its place. Structure notes for the agent that will read them, not for human completeness.
+
+### What NOT to Put in Notes (or to Remove Over Time)
+
+These patterns degrade context quality when a note is retrieved:
+
+| Anti-pattern | Why it hurts | Fix |
+|---|---|---|
+| Resolved error traces | Agent spends tokens on closed issues | Remove via `edit_note` after resolution |
+| Stale `[status]` observations | "active" that's now done creates false state | Update in-place with `find_replace` |
+| Raw log dumps | Noise — no decision-relevant signal | Summarize to `[insight]` / `[error]` observations |
+| Superseded decisions | Contradicts current reality | Remove the old, keep the new with `replaces` relation |
+| Meeting small talk / preamble | Zero knowledge graph value | Don't capture in the first place |
+| "I tried X and it failed" logs | Once resolved, pure noise | Strip during reflection/defrag |
+
+**The test:** "If I gave this note to a fresh agent with no prior context, would every line help it make a better decision about this topic?" Remove what fails this test.
+
+### Pre-fetch Pattern (Front-load Relevant Context)
+
+Before starting any multi-step task, call `build_context` on related notes FIRST. This front-loads relevant knowledge into context before any tool calls that need it — rather than retrieving piecemeal as you go.
+
+```python
+# ✅ Front-load at session start
+build_context(url="memory://tasks/*")                    # active tasks
+build_context(url="memory://architecture/api-design")    # relevant domain notes
+build_context(url="memory://project/current-sprint")     # current work context
+
+# ❌ Piecemeal retrieval mid-task (forces round-trips)
+# ... do some work ...
+# search_notes("api design")                             # too late, context already fragmented
+```
+
+Build context early. Retrieve precisely. Every unnecessary search mid-task burns context budget.
+
+
 ## Writing Notes with Tools
 
 ### Creating a Note
@@ -273,6 +313,7 @@ flexibility matters more.
 ```
 
 Basic Memory auto-generates frontmatter (including the permalink and memory URL) from the parameters. This note would get permalink `architecture/api-design-decisions` and be addressable at `memory://architecture/api-design-decisions`.
+
 
 ### Editing an Existing Note
 
@@ -313,7 +354,7 @@ The permalink stays the same after a move, so all `[[wiki-links]]` and `memory:/
 
 1. **Start with context.** Before listing observations, explain *why* this note exists. Future-you (or your AI collaborator) will thank you.
 
-2. **Favor completeness.** Write rich, substantive notes. Basic Memory's search pulls relevant chunks from note bodies, so longer notes with more context are *more* discoverable, not less. Use prose in the body to tell the full story — the background, the reasoning, the nuance. Then distill key facts into `[category] content` observations for structured queries. Both matter: prose gives meaning, observations give precision.
+2. **Favor completeness — but stay signal-dense.** Write rich, substantive notes. But every observation should earn its place. Prune stale entries; don't just append indefinitely.
 
 3. **Build incrementally.** Add to existing notes rather than creating duplicates. Use `edit_note` to append new observations or relations as you learn more.
 

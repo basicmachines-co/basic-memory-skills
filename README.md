@@ -1,27 +1,159 @@
-# basic-memory-skills
+# copilot-memory-skills
 
-Skills for [Basic Memory](https://github.com/basicmachines-co/basic-memory) — teach AI coding agents how to use Basic Memory's MCP tools effectively.
+Skills for [GitHub Copilot CLI](https://docs.github.com/en/copilot/github-copilot-in-the-cli) that connect your agent to [Basic Memory](https://github.com/basicmachines-co/basic-memory) — a local knowledge graph that persists across sessions.
 
-## What Are Skills?
+Derived from [`basicmachines-co/basic-memory-skills`](https://github.com/basicmachines-co/basic-memory-skills) (MIT License). Improved with [12-factor-agents](https://github.com/humanlayer/12-factor-agents) principles for better context management, state handling, and session resilience.
 
-Skills are markdown instruction files (`SKILL.md`) that AI agents load for domain-specific guidance. Each skill contains structured knowledge about *when* and *how* to use specific tools, with examples and best practices.
+---
 
-Basic Memory provides the MCP server — tools like `write_note`, `search_notes`, and `build_context` for managing a local-first knowledge graph. These skills teach agents how to use those tools well: when to create tasks vs. notes, how to structure observations for searchability, when to run schema validation, and more.
+## What This Gives You
+
+Without Basic Memory, your Copilot CLI agent starts fresh every session. With it, your agent remembers:
+- Decisions made and why
+- Active tasks and their state
+- People, organizations, and concepts you've discussed
+- Project context across weeks or months of work
+
+These skills teach your agent *how to use* Basic Memory effectively — not just the API calls, but the patterns that make a knowledge graph actually useful.
+
+---
+
+## Prerequisites
+
+### 1. Install Basic Memory
+
+```bash
+pip install basic-memory
+```
+
+Or see the [full install guide](https://github.com/basicmachines-co/basic-memory#installation).
+
+### 2. Configure the MCP Server
+
+Copy `.mcp.json` from this repo into your project root (or `~/.copilot/`):
+
+```bash
+cp .mcp.json /path/to/your/project/
+```
+
+Then connect in Copilot CLI:
+
+```
+/mcp
+```
+
+Verify the Basic Memory tools are available — you should see `write_note`, `read_note`, `search_notes`, etc.
+
+### 3. Install These Skills
+
+**Option A — npm (recommended):**
+
+```bash
+npm install -g copilot-memory-skills
+```
+
+Skills are automatically copied to `~/.copilot/skills/` (and `~/.claude/skills/` if present). Then in Copilot CLI:
+
+```
+/skills reload
+```
+
+**Option B — npx (other agents):**
+
+```bash
+# Install all skills
+npx skills add tyler555g/copilot-memory-skills
+
+# Install a specific skill
+npx skills add tyler555g/copilot-memory-skills --skill memory-tasks
+
+# Check for updates
+npx skills check
+
+# Update installed skills
+npx skills update
+```
+
+**Option C — manual:**
+
+Clone this repo and copy any skill folder into `~/.copilot/skills/`:
+
+```bash
+git clone https://github.com/tyler555g/copilot-memory-skills
+cp -r copilot-memory-skills/memory-* ~/.copilot/skills/
+```
+
+Then in Copilot CLI:
+
+```
+/skills reload
+```
+
+---
 
 ## Skills
 
-| Skill | Description | When to use |
-|-------|-------------|-------------|
-| **memory-tasks** | Structured task tracking that survives context compaction. Creates typed `Task` notes with steps, status, and context. | Multi-step work (3+ steps), anything that might outlast a context window, or after compaction to resume. |
-| **memory-schema** | Schema lifecycle management — discover unschemaed notes, infer schemas, create/edit definitions, validate, and detect drift. | When structured note types emerge (Task, Person, Meeting, etc.) and you want consistency. |
-| **memory-reflect** | Sleep-time memory reflection. Reviews recent conversations and daily notes, extracts insights, consolidates into long-term memory. Inspired by [sleep-time compute](https://www.letta.com/blog/sleep-time-compute). | Schedule via cron (1-2x daily), trigger from heartbeat, or run on demand. |
-| **memory-notes** | How to write well-structured notes — frontmatter, observations with semantic categories, relations with wiki-links, and best practices. | When creating or improving notes, or when you need a reference for the note format. |
-| **memory-metadata-search** | Structured metadata search — query notes by custom frontmatter fields using equality, range, array, and nested filters. | When finding notes by status, priority, confidence, or any custom YAML field. |
-| **memory-defrag** | Memory defragmentation — split bloated files, merge duplicates, remove stale information, restructure the hierarchy. | Run weekly/biweekly via cron, or on demand when memory feels messy. |
-| **memory-lifecycle** | Entity lifecycle management — status transitions through folder-based organization, archiving completed work. Core principle: archive, never delete. | When marking items complete, archiving old entities, or managing folder-based status workflows. |
-| **memory-ingest** | Process unstructured external input into structured entities. Parses meeting transcripts, conversation logs, and pasted documents. | When pasting a transcript, conversation log, or external document that should become structured knowledge. |
-| **memory-research** | Web research synthesized into Basic Memory entities. Researches a subject, checks for existing knowledge, presents findings, and creates entity notes. | When asked to research a company, person, technology, or topic. |
-| **memory-literary-analysis** | Analyze a complete literary work into a structured knowledge graph — characters, themes, chapters, locations, symbols, and literary devices. | Full-text literary analysis, book club companions, teaching resources, or research projects. |
+| Skill | Use When | Key 12-Factor Improvement |
+|-------|----------|--------------------------|
+| **memory-notes** | Creating or updating notes in your knowledge graph | F3: Context hygiene + pre-fetch pattern |
+| **memory-tasks** | Tracking multi-step work across sessions | F12: Stateless reducer framing; F5: single source of truth; F6: explicit pause/resume protocols |
+| **memory-reflect** | Consolidating recent activity into long-term memory | F9: Reflection = context compaction, not journaling |
+| **memory-ingest** | Turning meeting notes, transcripts, or documents into structured entities | F3: Structure entities for retrieval, not storage |
+| **memory-research** | Researching companies, people, technologies | F3: Capture why you searched, not just what you found |
+| **memory-schema** | Defining and managing structured note types | F4: Schemas = typed agent outputs; F5: clarified dual-location rationale |
+| **memory-defrag** | Cleaning up bloated or fragmented memory files | F9: Resolved error traces as explicit defrag target |
+| **memory-lifecycle** | Archiving completed work, managing entity status | F5: Folder = canonical status; F6: archive=pause, reactivate=resume |
+| **memory-metadata-search** | Finding notes by structured frontmatter fields | F3: Precision context retrieval pattern |
+| **memory-literary-analysis** | Analyzing a book or literary work end-to-end | F12: Stateless reducer at scale; F3: seed entities = pre-fetch pattern |
+
+---
+
+## 12-Factor-Agents Principles Applied
+
+These skills are improved versions of the originals. Each improvement applies a specific principle from [12-factor-agents](https://github.com/humanlayer/12-factor-agents):
+
+### Factor 3 — Own Your Context Window
+Notes retrieved from Basic Memory enter your context window and cost tokens. These skills add explicit guidance on:
+- **Context hygiene**: what NOT to put in notes (resolved errors, stale status, raw logs)
+- **Pre-fetch pattern**: load relevant context at session start, not piecemeal mid-task
+- **Structure for retrieval**: write notes so future agents get exactly what they need
+
+Applied to: `memory-notes`, `memory-ingest`, `memory-research`, `memory-metadata-search`, `memory-literary-analysis`
+
+### Factor 5 — Unified Execution State
+Your knowledge graph is the state. These skills clarify:
+- The task note IS the execution state — not a record of it
+- Why fields appear in both frontmatter and observations (different consumers, not duplication)
+- Folder location as canonical status (not frontmatter)
+
+Applied to: `memory-tasks`, `memory-schema`, `memory-lifecycle`
+
+### Factor 6 — Launch/Pause/Resume
+Context compaction ends sessions unexpectedly. These skills formalize:
+- **Pause protocol**: what to flush before `/compact` or session end
+- **Resume protocol**: search → read → validate step → continue
+- Archive/reactivate as entity-level pause/resume
+
+Applied to: `memory-tasks`, `memory-lifecycle`
+
+### Factor 9 — Compact Errors Into Context
+Stale information degrades your knowledge graph over time. These skills add:
+- Reflection as context compaction, not journaling (strip resolved errors, superseded decisions)
+- "Resolved error traces" as an explicit defrag target
+- The fresh-agent test: "Would this note help or mislead a fresh agent?"
+
+Applied to: `memory-reflect`, `memory-defrag`
+
+### Factor 12 — Stateless Reducer
+Each Copilot CLI session is stateless. The knowledge graph is the accumulated state. These skills frame Basic Memory as a stateless reducer:
+
+```
+Each session: read state → process → write state → exit
+```
+
+Applied to: `memory-tasks`, `memory-literary-analysis`, and as framing in `memory-notes`
+
+---
 
 ## Basic Memory Cloud
 
@@ -34,84 +166,63 @@ Everything works locally — cloud adds cross-device, team, and production capab
 
 Cloud extends local-first — still plain markdown, still yours. Start with a [7-day free trial](https://basicmemory.com) and use code `BMFOSS` for 20% off for 3 months.
 
-## Installation
-
-### Via npx skills (recommended)
-
-Install or update skills using the [Skills CLI](https://github.com/vercel-labs/skills):
-
-```bash
-# Install all skills
-npx skills add basicmachines-co/basic-memory-skills
-
-# Install a specific skill
-npx skills add basicmachines-co/basic-memory-skills --skill memory-tasks
-
-# Install all skills for a specific agent
-npx skills add basicmachines-co/basic-memory-skills --agent claude
-
-# List available skills without installing
-npx skills add basicmachines-co/basic-memory-skills --list
-
-# Check for updates
-npx skills check
-
-# Update installed skills
-npx skills update
-```
-
-Skills are installed to your agent's skills directory (e.g., `~/.claude/skills/` for Claude Code global, or `.claude/skills/` for project-scoped).
-
-### Claude Desktop (claude.ai)
-
-Claude Desktop loads skills through **Settings > Capabilities**:
-
-1. Clone or download this repository
-2. In Claude, go to **Settings > Capabilities** and ensure both **Code execution** and **Skills** are enabled
-3. Click **Upload skill** and upload the `SKILL.md` file (or ZIP the skill folder and upload that)
-4. Toggle the skill on — Claude will use it automatically when relevant
-
-Repeat for each skill you want. Custom uploaded skills are private to your account.
-
-> **Tip:** Start with **memory-notes** (core note-writing patterns) and add others as needed. You don't need all 9 at once.
-
-See [Using Skills in Claude](https://support.claude.com/en/articles/12512180-using-skills-in-claude) for more details.
-
-### Manual install
-
-Copy skill directories into your agent's skills folder:
-
-```bash
-# Claude Code — global
-cp -r memory-tasks ~/.claude/skills/
-cp -r memory-notes ~/.claude/skills/
-# ... etc.
-
-# Claude Code — project-scoped
-cp -r memory-tasks .claude/skills/
-
-# Any agent that reads SKILL.md files
-cp -r memory-tasks <agent-skills-dir>/
-```
-
-### Bundled with OpenClaw plugin
-
-All 9 skills are also bundled in the [`@basicmemory/openclaw-basic-memory`](https://github.com/basicmachines-co/openclaw-basic-memory) plugin — no extra install step needed if you use OpenClaw.
+---
 
 ## Compatible Agents
 
 These skills work with any AI coding agent that supports the SKILL.md format:
 
-- **Claude Desktop** — upload skill ZIPs via Settings > Capabilities
+- **GitHub Copilot CLI** — primary target; uses `~/.copilot/skills/`
 - **Claude Code** — loads skills from `~/.claude/skills/` or `.claude/skills/`
+- **Claude Desktop** — upload skill ZIPs via Settings > Capabilities
 - **Cursor** — AI-powered coding with skill support
 - **Windsurf** — agent-based development with skill loading
 - **Any agent** supporting markdown-based skill files
 
-## Development
+---
 
-See [DEVELOPMENT.md](./DEVELOPMENT.md) for testing and contribution details.
+## Workflow Examples
+
+### Start of any session
+
+```
+/skills memory-tasks
+→ "Search for active tasks and resume"
+```
+
+The agent will search for active tasks, read the current one, validate the step, and continue.
+
+### After a meeting
+
+```
+/skills memory-ingest
+→ [paste transcript]
+```
+
+The agent parses the content, searches for existing entities, proposes new ones for your approval, and creates structured notes.
+
+### Weekly maintenance
+
+```
+/skills memory-reflect
+/skills memory-defrag
+```
+
+Consolidate insights into MEMORY.md, then clean up fragmented or stale content.
+
+---
+
+## Attribution
+
+This repo is derived from [`basicmachines-co/basic-memory-skills`](https://github.com/basicmachines-co/basic-memory-skills), which is the original source of all 10 skill workflows. Licensed under MIT.
+
+Improvements applied in this fork:
+- Copilot CLI compatibility framing
+- 12-factor-agents principle integration (per-skill, not just as documentation)
+- Enhanced protocols for context hygiene, pause/resume, error compaction
+
+---
 
 ## License
 
-MIT
+MIT — see original source for full license text.

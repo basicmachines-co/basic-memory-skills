@@ -1,11 +1,16 @@
 ---
 name: memory-defrag
-description: "Defragment and reorganize agent memory files: split bloated files, merge duplicates, remove stale information, and restructure the memory hierarchy. Use when memory files have grown unwieldy, contain redundancies, or need reorganization. Run periodically (weekly) or on demand."
+description: "Defragment and reorganize agent memory files: split bloated files, merge duplicates, remove stale information, and restructure the memory hierarchy. Applies Factor 9 (compact errors into context) — defrag strips resolved error traces, stale state, and noise that degrades context quality. Run weekly or on demand."
 ---
 
 # Memory Defrag
 
 Reorganize memory files for clarity, efficiency, and relevance. Like filesystem defragmentation but for knowledge.
+
+> **Factor 9 — Compact Errors Into Context:** Defrag is the scheduled application of context compaction. The goal is not just reorganization — it's noise removal. Resolved error traces, failed-attempt histories, superseded workarounds, and stale status logs are all context pollution. A defragged knowledge base gives future agents better signal per token.
+>
+> **The fresh-agent test:** Before each note, ask: "If I gave this to a fresh agent with zero context about this project, would it help them make better decisions — or would it confuse or mislead them?" Remove what fails this test.
+
 
 ## When to Run
 
@@ -35,10 +40,39 @@ Look for these common issues:
 | **Bloated file** | >300 lines, covers many topics | Split into focused files |
 | **Duplicate info** | Same fact in multiple places | Consolidate to one location |
 | **Stale entries** | References to completed work, old dates, resolved issues | Remove or archive |
+| **Resolved error traces** | Debugging logs, failed-attempt history, closed-issue workarounds | Remove — these are context noise once resolved |
 | **Orphan files** | Files in memory/ never referenced or updated | Review, merge, or remove |
 | **Inconsistencies** | Contradictory information across files | Resolve to ground truth |
 | **Poor organization** | Related info scattered across files | Restructure by topic |
 | **Recursive nesting** | `memory/memory/memory/...` directories | Delete nested dirs (indexer bug artifact) |
+
+### Resolved Error Traces (Factor 9)
+
+Resolved error traces deserve special attention. These are:
+- Debugging step-by-step logs from incidents that are now closed
+- "Tried X, failed because Y" histories where the issue is resolved
+- Workaround instructions for bugs that have been fixed
+- Error symptoms and their old diagnoses when the root cause is gone
+
+**Why they're harmful:** When retrieved as context, they look like current problems. A fresh agent reading "reconnect loop crashes the server — workaround: restart manually" doesn't know it was fixed last week. This creates false alerts and wastes context budget on phantom issues.
+
+**The rule:** Once an issue is resolved and the fix is documented or deployed, remove the error trace. If there's a lesson worth preserving, distill it to a `[lesson]` observation — one line, not a log.
+
+```python
+# Before: three lines of error context (stale)
+# - [issue] MCP server crashes on reconnect — repro: disconnect and reconnect rapidly
+# - [workaround] Restart the MCP server manually after each disconnect
+# - [status] investigating
+
+# After: one line of distilled lesson (current)
+edit_note(
+  identifier="MEMORY",
+  operation="find_replace",
+  find_text="- [issue] MCP server crashes on reconnect...\n- [workaround]...\n- [status] investigating",
+  content="- [lesson] MCP reconnect stability: fixed in v2.1.0 — upgrade if seeing crashes #mcp"
+)
+```
+
 
 ### 3. Plan Changes
 
@@ -46,6 +80,7 @@ Before making edits, write a brief plan:
 ```markdown
 ## Defrag Plan
 - [ ] Split MEMORY.md "Key People" section → memory/people.md
+- [ ] Remove resolved error traces (3 entries) from MEMORY.md
 - [ ] Remove completed tasks older than 30 days from memory/tasks/
 - [ ] Merge memory/bm-marketing-ideas.md into memory/competitive/
 - [ ] Update stale project status entries in MEMORY.md
@@ -59,11 +94,12 @@ Apply changes one at a time:
 - **Prune**: Remove information that is no longer relevant or accurate
 - **Restructure**: Move files to appropriate directories, rename for clarity
 - **Update**: Fix outdated facts, dates, statuses
+- **Strip error traces**: Remove resolved debugging history — leave only lessons
 
 ### 5. Verify & Log
 
 After changes:
-- Verify no information was lost (compare before/after)
+- Verify no valuable information was lost (compare before/after signal, not just line count)
 - Update any cross-references between files
 - Log what was done in today's daily note:
 
@@ -73,14 +109,16 @@ After changes:
 - Split: [list]
 - Merged: [list]
 - Pruned: [list]
+- Error traces removed: [count]
 - Net result: X files, Y total lines (was Z lines)
 ```
 
 ## Guidelines
 
 - **Preserve raw daily notes.** Don't delete or modify `memory/YYYY-MM-DD.md` files — they're the audit trail.
-- **Target 15-25 focused files.** Too few means bloated files; too many means fragmentation. Aim for the sweet spot.
+- **Target 15-25 focused files.** Too few means bloated files; too many means fragmentation.
 - **File names should be scannable.** Use descriptive names: `people.md`, `project-status.md`, `competitive-landscape.md` — not `notes-2.md`.
 - **Don't over-organize.** One level of directories is usually enough. `memory/tasks/` and `memory/competitive/` are fine; `memory/work/projects/active/basic-memory/notes/` is not.
 - **Completed tasks**: Tasks with `status: done` older than 14 days can be removed. Their insights should already be in MEMORY.md via reflection.
 - **Ask before destructive changes.** If uncertain whether information is still relevant, keep it with a `(review needed)` tag rather than deleting.
+- **Distill, don't just remove.** When pruning error traces or stale observations, ask if there's a one-line lesson worth keeping before deleting entirely.

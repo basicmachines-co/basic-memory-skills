@@ -1,11 +1,26 @@
 ---
 name: memory-metadata-search
-description: "Structured metadata search for Basic Memory: query notes by custom frontmatter fields using equality, range, array, and nested filters. Use when finding notes by status, priority, confidence, or any custom YAML field rather than free-text content."
+description: "Structured metadata search for Basic Memory: query notes by custom frontmatter fields using equality, range, array, and nested filters. Applies Factor 3 (precision context retrieval) and Factor 5 (consistent status fields). Use when finding notes by status, priority, confidence, or any custom YAML field."
 ---
 
 # Memory Metadata Search
 
 Find notes by their structured frontmatter fields instead of (or in addition to) free-text content. Any custom YAML key in a note's frontmatter beyond the standard set (`title`, `type`, `tags`, `permalink`, `schema`) is automatically indexed as `entity_metadata` and becomes queryable.
+
+> **Factor 3 — Own Your Context Window:** Metadata search is precision context retrieval. Instead of loading all notes into context or running a broad text search that returns noise, use metadata filters to retrieve exactly the notes relevant to the current step.
+>
+> The pattern: **search precisely, load only what the next decision needs.**
+>
+> ```python
+> # ❌ Broad — loads too much context
+> search_notes("tasks")
+>
+> # ✅ Precise — loads exactly what's needed
+> search_notes(note_types=["task"], status="active", metadata_filters={"assigned_to": "claude"})
+> ```
+
+> **Factor 5 — Unified State:** Metadata filters work best when status fields are consistent across all notes of a type. If Task notes sometimes use `status: in-progress` and sometimes `status: active`, metadata filters become unreliable. Schemas enforce this consistency — use them. See the **memory-schema** skill.
+
 
 ## When to Use
 
@@ -173,6 +188,30 @@ search_notes("tag:security")
 search_notes("OAuth", metadata_filters={"status": "in-progress"})
 ```
 
+## Context Retrieval Patterns (Factor 3)
+
+Metadata search is most powerful when used for session setup — retrieving precisely the right context before starting work:
+
+```python
+# Session start: get your active work
+search_notes(note_types=["task"], status="active")
+
+# Before a security review: get high-confidence security notes
+search_notes(tags=["security"], metadata_filters={"confidence": {"$gte": 0.7}})
+
+# Find everything that needs review
+search_notes(metadata_filters={"status": {"$in": ["draft", "needs-review"]}})
+
+# Scoped project context: only high-priority items in this project
+search_notes(
+    metadata_filters={"priority": "high"},
+    project="my-project"
+)
+```
+
+The goal is always the same: load the minimum context that enables the next decision. Metadata filters are your precision instrument for achieving this.
+
+
 ## Guidelines
 
 - **Use metadata search for structured queries.** If you're looking for notes by a known field value (status, priority, type), metadata filters are more precise than text search.
@@ -182,3 +221,4 @@ search_notes("OAuth", metadata_filters={"status": "in-progress"})
 - **Omit `query` for filter-only searches.** `search_notes(metadata_filters={"status": "active"})` works without a text query.
 - **Dot notation for nesting.** Access nested YAML structures with dots: `{"schema.version": "2"}` queries the `version` key inside a `schema` object.
 - **Tags shortcut is convenient but limited.** `tags` and `status` are sugar for common fields. For anything else, use `metadata_filters` directly.
+- **Consistency enables filtering.** Metadata filters require consistent values across notes. If you use `status: active` sometimes and `status: in-progress` other times for the same concept, filters break. Use schemas to enforce consistency.
