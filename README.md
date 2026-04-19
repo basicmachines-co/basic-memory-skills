@@ -1,8 +1,6 @@
-# copilot-memory-skills
+# basic-memory-skills
 
-Skills for [GitHub Copilot CLI](https://docs.github.com/en/copilot/github-copilot-in-the-cli) that connect your agent to [Basic Memory](https://github.com/basicmachines-co/basic-memory) — a local knowledge graph that persists across sessions.
-
-Derived from [`basicmachines-co/basic-memory-skills`](https://github.com/basicmachines-co/basic-memory-skills) (MIT License). Improved with [12-factor-agents](https://github.com/humanlayer/12-factor-agents) principles for better context management, state handling, and session resilience.
+Skills for [Basic Memory](https://github.com/basicmachines-co/basic-memory) — teach AI coding agents how to use Basic Memory's MCP tools effectively. Improved with [12-factor-agents](https://github.com/humanlayer/12-factor-agents) principles for better context management, state handling, and session resilience.
 
 ---
 
@@ -49,7 +47,7 @@ Verify the Basic Memory tools are available — you should see `write_note`, `re
 **Option A — npm (recommended):**
 
 ```bash
-npm install -g copilot-memory-skills
+npm install -g basic-memory-skills
 ```
 
 Skills are automatically copied to `~/.copilot/skills/` (and `~/.claude/skills/` if present). Then in Copilot CLI:
@@ -62,10 +60,10 @@ Skills are automatically copied to `~/.copilot/skills/` (and `~/.claude/skills/`
 
 ```bash
 # Install all skills
-npx skills add tyler555g/copilot-memory-skills
+npx skills add basicmachines-co/basic-memory-skills
 
 # Install a specific skill
-npx skills add tyler555g/copilot-memory-skills --skill memory-tasks
+npx skills add basicmachines-co/basic-memory-skills --skill memory-tasks
 
 # Check for updates
 npx skills check
@@ -79,8 +77,8 @@ npx skills update
 Clone this repo and copy any skill folder into `~/.copilot/skills/`:
 
 ```bash
-git clone https://github.com/tyler555g/copilot-memory-skills
-cp -r copilot-memory-skills/memory-* ~/.copilot/skills/
+git clone https://github.com/basicmachines-co/basic-memory-skills
+cp -r basic-memory-skills/memory-* ~/.copilot/skills/
 ```
 
 Then in Copilot CLI:
@@ -214,12 +212,9 @@ Consolidate insights into MEMORY.md, then clean up fragmented or stale content.
 
 ## Attribution
 
-This repo is derived from [`basicmachines-co/basic-memory-skills`](https://github.com/basicmachines-co/basic-memory-skills), which is the original source of all 10 skill workflows. Licensed under MIT.
+Skill content improvements apply principles from [12-factor-agents](https://github.com/humanlayer/12-factor-agents) (Dex Horthy / [HumanLayer](https://github.com/humanlayer)). Commit conventions follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/). Version tracking uses [Changesets](https://github.com/changesets/changesets).
 
-Improvements applied in this fork:
-- Copilot CLI compatibility framing
-- 12-factor-agents principle integration (per-skill, not just as documentation)
-- Enhanced protocols for context hygiene, pause/resume, error compaction
+12-factor improvements developed with [GitHub Copilot CLI](https://docs.github.com/en/copilot/github-copilot-in-the-cli).
 
 ---
 

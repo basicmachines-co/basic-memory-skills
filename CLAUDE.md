@@ -6,25 +6,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Skills collection for [Basic Memory](https://github.com/basicmachines-co/basic-memory) — a local-first knowledge graph built on markdown files and MCP. Each skill teaches AI assistants how to effectively use Basic Memory's MCP tools.
 
-Skills can be installed via `npx skills add` or copied manually into any agent's skills directory.
+Skills can be installed via `npm install -g basic-memory-skills`, `npx skills add`, or copied manually into any agent's skills directory.
 
 ## Repository Structure
 
 Each skill is a single `SKILL.md` file in its own directory:
 
 ```
-memory-tasks/SKILL.md           # Task tracking across context compaction
-memory-schema/SKILL.md          # Schema lifecycle (discover, infer, validate, drift)
-memory-reflect/SKILL.md         # Sleep-time memory consolidation
-memory-notes/SKILL.md           # Note writing patterns and knowledge graph design
-memory-defrag/SKILL.md          # Memory reorganization and cleanup
-memory-metadata-search/SKILL.md # Structured metadata filtering and queries
-memory-lifecycle/SKILL.md       # Entity status transitions and folder-based archival
-memory-ingest/SKILL.md          # Process external input into structured entities
-memory-research/SKILL.md        # Web research synthesized into Basic Memory entities
+memory-tasks/SKILL.md                # Task tracking across context compaction
+memory-schema/SKILL.md               # Schema lifecycle (discover, infer, validate, drift)
+memory-reflect/SKILL.md              # Sleep-time memory consolidation
+memory-notes/SKILL.md                # Note writing patterns and knowledge graph design
+memory-defrag/SKILL.md               # Memory reorganization and cleanup
+memory-metadata-search/SKILL.md      # Structured metadata filtering and queries
+memory-lifecycle/SKILL.md            # Entity status transitions and folder-based archival
+memory-ingest/SKILL.md               # Process external input into structured entities
+memory-research/SKILL.md             # Web research synthesized into Basic Memory entities
+memory-literary-analysis/SKILL.md    # Literary analysis into structured knowledge graph
 ```
 
-There is no code to build, lint, or test — this is a pure markdown project.
+Infrastructure files:
+- `package.json` — npm package definition with postinstall script
+- `scripts/postinstall.js` — copies skills to agent directories on `npm install -g`
+- `.changeset/` — changeset config and pending changesets
+- `commitlint.config.js` — enforces [Conventional Commits](https://www.conventionalcommits.org)
+- `skills-lock.json` — Skills CLI lock file (auto-generated)
 
 ## SKILL.md Format
 
@@ -44,8 +50,15 @@ description: "What the skill does and when to use it."
 ## Adding a New Skill
 
 1. Create `memory-<name>/SKILL.md` with frontmatter and markdown instructions
-2. Update `README.md` with the new skill's summary
-3. Commit and push
+2. Add the skill directory to the `files` array in `package.json`
+3. Add the skill name to the `SKILLS` array in `scripts/postinstall.js`
+4. Update `README.md` with the new skill's summary
+5. Create a changeset: `npx changeset`
+6. Commit using [Conventional Commits](https://www.conventionalcommits.org): `feat(memory-<name>): add <description>`
+
+## Commit Conventions
+
+All commits follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) enforced by commitlint. Common types: `feat:`, `fix:`, `docs:`, `chore:`.
 
 ## Key Concepts Referenced in Skills
 
