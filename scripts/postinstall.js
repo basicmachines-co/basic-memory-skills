@@ -53,17 +53,23 @@ if (targets.length === 0) {
 const pkgRoot = path.join(__dirname, '..');
 let installed = 0;
 
-for (const skillsDir of targets) {
-  fs.mkdirSync(skillsDir, { recursive: true });
-  for (const skill of SKILLS) {
-    const src = path.join(pkgRoot, skill);
-    const dest = path.join(skillsDir, skill);
-    if (fs.existsSync(src)) {
-      copyDirSync(src, dest);
-      installed++;
+try {
+  for (const skillsDir of targets) {
+    fs.mkdirSync(skillsDir, { recursive: true });
+    for (const skill of SKILLS) {
+      const src = path.join(pkgRoot, skill);
+      const dest = path.join(skillsDir, skill);
+      if (fs.existsSync(src)) {
+        copyDirSync(src, dest);
+        installed++;
+      }
     }
+    console.log(`✅ Installed ${SKILLS.length} memory skills → ${skillsDir}`);
   }
-  console.log(`✅ Installed ${SKILLS.length} memory skills → ${skillsDir}`);
+} catch (err) {
+  console.error(`⚠️  Failed to install skills: ${err.message}`);
+  console.error('   You can manually copy skill folders to ~/.copilot/skills/');
+  process.exit(0);
 }
 
 if (installed > 0) {
