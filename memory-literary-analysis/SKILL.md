@@ -1,0 +1,538 @@
+---
+name: memory-literary-analysis
+description: "Analyze a complete literary work into a structured Basic Memory knowledge graph. Covers schema design, entity seeding, chapter-by-chapter processing, cross-referencing, validation, and visualization. Applies Factor 12 (stateless reducer at scale) and Factor 3 (seed entities as pre-fetch targets)."
+---
+
+# Memory Literary Analysis
+
+Transform a complete literary work into a structured knowledge graph. Characters, themes, chapters, locations, symbols, and literary devices become interconnected notes — searchable, validatable, and visualizable.
+
+> **Factor 12 — Stateless Reducer at Scale:** This pipeline IS the stateless reducer pattern applied to literary analysis. Each chapter-processing session is a stateless reducer:
+>
+> 1. **Read state** — load the processing task note + any relevant entity stubs
+> 2. **Process** — analyze the current chapter batch, create/enrich notes
+> 3. **Write state** — update the task note (current batch, progress), write enriched entity notes
+> 4. **Exit** — the knowledge graph accumulates state; each agent session is stateless
+>
+> The knowledge graph grows across sessions. The agent starts fresh every time. The task note is the checkpoint that makes this work. Use the **memory-tasks** skill to create it.
+
+> **Factor 3 — Phase 1 Seed = Pre-fetch Pattern:** Creating entity stubs before processing chapters is the pre-fetch pattern applied to literary analysis. You create `[[wiki-link]]` targets in advance so future agents can traverse the graph immediately, without needing to search for entities that should exist. Seed first; enrich later.
+
+## When to Use
+
+- Analyzing a novel, play, poem, or non-fiction book end-to-end
+- Building a teaching or study resource for a literary text
+- Creating a book club companion knowledge base
+- Research projects requiring structured close reading
+- Stress-testing Basic Memory at scale (~200+ notes, 1000+ relations)
+
+## Pipeline Overview
+
+```
+Phase 0: Setup         → project, schemas, directory structure
+Phase 1: Seed          → stub notes for known major entities (pre-fetch pattern)
+Phase 2: Process       → chapter-by-chapter notes in batches (stateless reducer loop)
+Phase 3: Cross-ref     → enrich arcs, add parallels, write analysis
+Phase 4: Validate      → schema checks, drift detection, consistency
+Phase 5: Visualize     → canvas files for character webs, timelines
+```
+
+## Phase 0: Setup
+
+### Create the Project
+
+```python
+create_memory_project(name="<work-name>", path="~/basic-memory/<work-name>")
+```
+
+Use a kebab-case slug of the work's title (e.g., `great-gatsby`, `hamlet`, `beloved`).
+
+### Define Schemas
+
+Write 6 schema notes to `schema/`. Each schema defines the entity type's fields, observation categories, and relation types. Adapt fields to fit the work — the schemas below are starting points, not rigid templates.
+
+#### Character Schema
+
+```python
+write_note(
+  title="Character",
+  directory="schema",
+  note_type="schema",
+  metadata={
+    "entity": "Character",
+    "version": 1,
+    "schema": {
+      "role(enum)": "[protagonist, antagonist, supporting, minor], character's narrative role",
+      "description": "string, brief character description",
+      "first_appearance?": "string, chapter or scene of first appearance",
+      "status?(enum)": "[alive, dead, unknown, transformed], character status at end of work"
+    },
+    "settings": {"validation": "warn"}
+  },
+  content="""# Character
+
+Schema for character entity notes.
+
+## Observations
+- [convention] Major characters in characters/major/, minor in characters/minor/
+- [convention] Observation categories: trait, motivation, arc, quote, appearance, relationship, symbolism, fate
+- [convention] Relations: appears_in, contrasts_with, allied_with, commands, symbolizes, associated_with"""
+)
+```
+
+Add work-specific fields as needed — e.g., `rank` for military fiction, `house` for family sagas, `species` for fantasy.
+
+#### Theme Schema
+
+```python
+write_note(
+  title="Theme",
+  directory="schema",
+  note_type="schema",
+  metadata={
+    "entity": "Theme",
+    "version": 1,
+    "schema": {
+      "description": "string, what this theme explores",
+      "prevalence(enum)": "[major, minor], how central to the work",
+      "first_introduced?": "string, where theme first appears"
+    },
+    "settings": {"validation": "warn"}
+  },
+  content="""# Theme
+
+Schema for thematic analysis notes.
+
+## Observations
+- [convention] Observation categories: definition, manifestation, evolution, counterpoint, quote, interpretation
+- [convention] Relations: embodied_by, contrasts_with, reinforced_by, explored_in, expressed_through"""
+)
+```
+
+#### Chapter Schema
+
+```python
+write_note(
+  title="Chapter",
+  directory="schema",
+  note_type="schema",
+  metadata={
+    "entity": "Chapter",
+    "version": 1,
+    "schema": {
+      "chapter_number": "integer, sequential chapter number",
+      "pov?": "string, point-of-view character or narrator mode",
+      "setting?": "string, primary location",
+      "narrative_mode?(enum)": "[dramatic, expository, reflective, epistolary, mixed], chapter's primary mode"
+    },
+    "settings": {"validation": "warn"}
+  },
+  content="""# Chapter
+
+Schema for chapter-level analysis notes.
+
+## Observations
+- [convention] Chapters stored in chapters/ directory
+- [convention] Observation categories: summary, event, tone, technique, quote, significance, foreshadowing
+- [convention] Relations: features, set_in, explores, contains, employs, follows, precedes, parallels"""
+)
+```
+
+#### Location Schema
+
+```python
+write_note(
+  title="Location",
+  directory="schema",
+  note_type="schema",
+  metadata={
+    "entity": "Location",
+    "version": 1,
+    "schema": {
+      "description": "string, what this place is",
+      "location_type(enum)": "[city, building, landscape, body_of_water, region, fictional, vehicle], type of place",
+      "real_or_fictional(enum)": "[real, fictional, both], whether the place exists"
+    },
+    "settings": {"validation": "warn"}
+  },
+  content="""# Location
+
+Schema for location and setting notes.
+
+## Observations
+- [convention] Observation categories: description, atmosphere, symbolism, significance, geography
+- [convention] Relations: setting_for, associated_with, symbolizes, contains, part_of"""
+)
+```
+
+#### Symbol Schema
+
+```python
+write_note(
+  title="Symbol",
+  directory="schema",
+  note_type="schema",
+  metadata={
+    "entity": "Symbol",
+    "version": 1,
+    "schema": {
+      "description": "string, what the symbol is literally",
+      "symbol_type(enum)": "[object, animal, color, action, natural_phenomenon, body_part], category of symbol",
+      "primary_meaning": "string, most common interpretation"
+    },
+    "settings": {"validation": "warn"}
+  },
+  content="""# Symbol
+
+Schema for symbolic element notes.
+
+## Observations
+- [convention] Observation categories: meaning, appearance, ambiguity, interpretation, quote, evolution
+- [convention] Relations: represents, associated_with, appears_in, contrasts_with, located_at"""
+)
+```
+
+#### LiteraryDevice Schema
+
+```python
+write_note(
+  title="LiteraryDevice",
+  directory="schema",
+  note_type="schema",
+  metadata={
+    "entity": "LiteraryDevice",
+    "version": 1,
+    "schema": {
+      "description": "string, what the device is",
+      "device_type(enum)": "[rhetorical, structural, figurative, narrative, dramatic], category",
+      "frequency(enum)": "[pervasive, frequent, occasional, rare], how often used"
+    },
+    "settings": {"validation": "warn"}
+  },
+  content="""# LiteraryDevice
+
+Schema for literary technique and device notes.
+
+## Observations
+- [convention] Observation categories: definition, usage, effect, example, significance
+- [convention] Relations: used_in, characterizes, expresses, related_to"""
+)
+```
+
+### Directory Structure
+
+```
+<project>/
+  schema/            # 6 schema definitions
+  chapters/          # one note per chapter/section + prologue/epilogue
+  characters/
+    major/           # protagonist, antagonist, key supporting
+    minor/           # named characters with limited roles
+  themes/            # thematic analysis notes
+  locations/         # settings and places
+  symbols/           # symbolic elements
+  literary-devices/  # techniques and devices
+  analysis/          # cross-cutting synthesis
+  tasks/             # processing tracker (critical for stateless reducer)
+```
+
+## Phase 1: Seed Entities (Pre-fetch Pattern)
+
+> **Factor 3 — Pre-fetch:** Seed entities before processing chapters. This creates `[[wiki-link]]` targets that resolve immediately during chapter processing, so each session can traverse the graph without needing to search for entities that should exist. Stubs are cheap to create; missing link targets break graph traversal.
+
+Before processing chapters, create stub notes for major entities.
+
+### Characters (major)
+
+For each major character, create a stub with known metadata:
+
+```python
+write_note(
+  title="<Character Name>",
+  directory="characters/major",
+  note_type="Character",
+  tags=["character", "major", "<role>"],
+  metadata={"role": "<role>", "description": "<brief description>"},
+  content="""# <Character Name>
+
+## Observations
+- [role] <Character's role in the work>
+- [appearance] <Key physical description>
+
+## Relations
+- associated_with [[<Related Character>]]
+- appears_in [[<Key Location>]]"""
+)
+```
+
+### Seed Checklist
+
+Identify the work's major entities before you start reading. A good starting inventory:
+
+| Type | Typical Count | What to Include |
+|------|--------------|-----------------|
+| Characters (major) | 8-20 | Protagonist, antagonist, key supporting cast |
+| Themes | 5-12 | Central concerns the work explores |
+| Locations | 4-10 | Primary settings, symbolically significant places |
+| Symbols | 4-10 | Recurring objects, images, or motifs with layered meaning |
+
+Stubs don't need to be complete — they give `[[wiki-link]]` targets and will be enriched during chapter processing.
+
+### Create the Processing Task
+
+Before any chapter processing begins, create a Task note to track progress across sessions:
+
+```python
+write_note(
+  title="<Work Name> - Literary Analysis",
+  directory="tasks",
+  note_type="Task",
+  metadata={
+    "status": "active",
+    "current_step": 1,
+    "steps": ["Phase 1: Seed entities", "Phase 2: Batch 1 (Ch 1-10)", "Phase 2: Batch 2 (Ch 11-20)", "..."]
+  },
+  tags=["task", "literary-analysis"],
+  content="""# <Work Name> - Literary Analysis
+
+## Context
+Processing <Work Name> into a Basic Memory knowledge graph.
+Current phase: [update as you progress]
+Last session: [update with what you did and where you stopped]
+
+## Steps
+1. [ ] Phase 1: Seed entities (schemas + stubs)
+2. [ ] Phase 2: Batch 1 (Ch 1-10)
+...
+
+## Relations
+- tracks [[<Work Name>]]"""
+)
+```
+
+This task note is your checkpoint across sessions. Update it before every `/compact` event.
+
+## Phase 2: Chapter Processing (Stateless Reducer Loop)
+
+### Session Start Protocol
+
+Each chapter-processing session begins the same way:
+
+```python
+# 1. Read state — find the processing task
+search_notes(note_types=["task"], status="active")
+read_note(identifier="tasks/work-name-literary-analysis")
+
+# 2. Validate step — confirm which batch to process next
+# 3. Continue — process the next unchecked batch
+```
+
+### Source Text Preparation
+
+Obtain the full text and identify chapter/section boundaries. For public domain works, Project Gutenberg is a good source. For copyrighted works, work from a physical or licensed digital copy.
+
+### Batching Strategy
+
+Process ~10 chapters per batch to balance depth with progress:
+
+| Batch | Typical Content |
+|-------|----------------|
+| 1 | Opening: setting, character introductions, world-building |
+| 2-3 | Rising action: conflicts established, relationships develop |
+| 4-6 | Middle: complications, turning points, thematic deepening |
+| 7-8 | Climax approach: escalation, revelations, crises |
+| Final | Climax, resolution, epilogue |
+
+### Per-Chapter Workflow
+
+For each chapter:
+
+**1. Read the chapter carefully.** If working from a source text file, read the relevant section.
+
+**2. Create the chapter note:**
+
+```python
+write_note(
+  title="Chapter <N> - <Title>",
+  directory="chapters",
+  note_type="Chapter",
+  tags=["chapter", "<arc-phase>"],
+  metadata={
+    "chapter_number": <N>,
+    "pov": "<narrator or POV character>",
+    "setting": "<primary location>",
+    "narrative_mode": "<mode>"
+  },
+  content="""# Chapter <N> - <Title>
+
+## Observations
+- [summary] <1-2 sentence synopsis>
+- [event] <Key plot events>
+- [tone] <Emotional and stylistic atmosphere>
+- [technique] <Notable narrative techniques>
+- [quote] "<Significant passage>"
+- [significance] <Why this chapter matters to the whole>
+- [foreshadowing] <Hints at future events>
+
+## Relations
+- features [[<Character>]]
+- set_in [[<Location>]]
+- explores [[<Theme>]]
+- contains [[<Symbol>]]
+- employs [[<Literary Device>]]
+- follows [[Chapter <N-1> - <Previous Title>]]
+- precedes [[Chapter <N+1> - <Next Title>]]"""
+)
+```
+
+**3. Enrich related entities:**
+
+```python
+edit_note(
+  identifier="characters/major/<character-slug>",
+  operation="append",
+  heading="Observations",
+  content="""- [arc] Ch.<N>: <What happens to this character>
+- [quote] "<Attributed quote>" (Ch.<N>)"""
+)
+```
+
+**4. Update the processing task** before ending the session:
+
+```python
+edit_note(
+  identifier="tasks/work-name-literary-analysis",
+  operation="find_replace",
+  find_text="- [ ] Phase 2: Batch 1 (Ch 1-10)",
+  content="- [x] Phase 2: Batch 1 (Ch 1-10)"
+)
+```
+
+### What to Capture Per Chapter
+
+| Category | What to Look For |
+|----------|-----------------|
+| `[summary]` | 1-2 sentence chapter synopsis |
+| `[event]` | Key plot events (actions, revelations, arrivals) |
+| `[tone]` | Emotional and stylistic atmosphere |
+| `[technique]` | Narrative innovations (POV shifts, structural experiments) |
+| `[quote]` | Memorable or thematically significant passages |
+| `[significance]` | Why this chapter matters to the whole |
+| `[foreshadowing]` | Hints at future events |
+
+### Entity Enrichment Per Chapter
+
+As each chapter is processed, append observations to relevant entities:
+- **Characters**: `[arc]` moments, new `[trait]` revelations, `[quote]` attributions
+- **Themes**: `[manifestation]` in this chapter, `[evolution]` shifts
+- **Symbols**: `[appearance]` with context, new `[interpretation]` angles
+- **Locations**: `[atmosphere]` as described, `[significance]` in scene
+- **Literary devices**: `[example]` from this chapter
+
+### Adding Prose and Interpretation
+
+After the structured observations are in place, consider adding interpretive prose to major entity notes. Prepend 2-4 paragraphs of critical essay before the Observations section using `edit_note(operation="prepend")`. This prose should:
+
+- Argue for a reading of the character, theme, or symbol — not just describe it
+- Connect the entity to the work's larger concerns and to literary tradition
+- Include subjective opinions clearly marked as such ("In my reading...", "I find...")
+- Ground claims in textual evidence cited by chapter number
+
+## Phase 3: Cross-Referencing
+
+After all chapters are processed:
+
+### Character Arcs
+For each major character, write a full `[arc]` summary observation covering their trajectory across the work.
+
+### Theme Evolution
+For each theme, add `[evolution]` observations tracing how it develops from introduction to resolution.
+
+### Chapter Parallels
+Add `parallels` and `contrasts_with` relations between structurally similar chapters.
+
+### Analysis Notes
+Create synthesis notes in `analysis/`:
+
+```python
+write_note(
+  title="Narrative Structure",
+  directory="analysis",
+  note_type="note",
+  tags=["analysis", "structure"],
+  content="""# Narrative Structure
+
+Analysis of the work's narrative architecture.
+
+## Observations
+- [structure] <Overall arc description>
+- [technique] <Key narrative strategies>
+...
+
+## Relations
+- analyzes [[<Protagonist>]]
+- explores [[<Central Theme>]]
+..."""
+)
+```
+
+## Phase 4: Validation
+
+```python
+schema_validate(noteType="Character")
+schema_validate(noteType="Theme")
+schema_validate(noteType="Chapter")
+schema_validate(noteType="Location")
+schema_validate(noteType="Symbol")
+schema_validate(noteType="LiteraryDevice")
+
+schema_diff(noteType="Character")
+# ... for each type
+```
+
+## Phase 5: Visualization
+
+```python
+canvas(query="type:Character AND role:protagonist OR role:antagonist OR role:supporting")
+canvas(query="type:Theme")
+canvas(query="type:Chapter", layout="timeline")
+```
+
+## Adapting to Other Genres
+
+| Genre | Schema Adjustments |
+|-------|-------------------|
+| **Novel** | Base schemas work as-is |
+| **Play** | Add `Act` and `Scene` schemas; Character gets `speaking_lines` |
+| **Poetry collection** | Replace Chapter with `Poem`; add `form`, `meter`, `rhyme_scheme` |
+| **Non-fiction** | Replace Chapter with `Section`; add `Argument`, `Evidence` schemas |
+| **Memoir** | Character gets `relationship_to_narrator`; add `Memory` schema |
+
+### Scaling Guidance
+
+| Work Length | Batch Size | Estimated Notes |
+|-------------|-----------|----------------|
+| Novella (~40K words) | 5-10 chapters | ~50-80 |
+| Novel (~80K words) | 8-12 chapters | ~100-150 |
+| Long novel (~200K+ words) | 10-15 chapters | ~200-300 |
+
+## Related Skills
+
+- **memory-schema** — Schema creation, validation, and drift detection
+- **memory-tasks** — Track chapter processing progress across context compaction
+- **memory-notes** — Note writing patterns, observation categories, wiki-links
+- **memory-ingest** — Processing external input into structured entities
+- **memory-metadata-search** — Querying notes by frontmatter fields
+- **memory-lifecycle** — Archiving completed analysis phases
+
+## Guidelines
+
+- **Seed before processing.** Create entity stubs first — they're the pre-fetch anchors for the entire pipeline.
+- **Create the processing task before batch 1.** It's your state checkpoint across sessions.
+- **Batch for sanity.** ~10 chapters balances depth with momentum.
+- **Read the source text.** Don't rely on memory or summaries. Textual evidence is everything.
+- **Observations are your index.** Be generous with categories and specific with content.
+- **Relations are your web.** Every chapter should link to characters, themes, locations, and devices.
+- **Validate periodically.** Run `schema_validate` after each batch, not just at the end.
+- **Quote generously.** Literary analysis lives on textual evidence.
+- **Analysis comes last.** Synthesis notes in `analysis/` should be written after all chapters are processed.

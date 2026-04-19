@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "basic-memory": {
+      "command": "uvx",
+      "args": ["basic-memory", "mcp"],
+      "env": {}
+    }
+  }
+}
