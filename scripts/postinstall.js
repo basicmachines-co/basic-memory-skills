@@ -2,6 +2,11 @@
 // Installs memory skills to all detected agent skill directories.
 // Supports: ~/.copilot/skills, ~/.claude/skills, ~/.agents/skills
 
+// Skip in CI or when explicitly opted out
+if (process.env.CI || process.env.SKIP_POSTINSTALL) {
+  process.exit(0);
+}
+
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -75,7 +80,7 @@ try {
 } catch (err) {
   console.error(`⚠️  Failed to install skills: ${err.message}`);
   console.error('   You can manually copy skill folders to ~/.copilot/skills/');
-  process.exit(0);
+  process.exitCode = 1;
 }
 
 if (installed > 0) {
