@@ -1,5 +1,7 @@
 ---
 "copilot-memory-skills": minor
+# NOTE for upstream (basicmachines-co/basic-memory-skills):
+# Replace package name above with "basic-memory-skills" upon merge
 ---
 
 feat: add GitHub Copilot CLI support and 12-factor agent improvements
