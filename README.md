@@ -26,6 +26,8 @@ pip install basic-memory
 
 Or see the [full install guide](https://github.com/basicmachines-co/basic-memory#installation).
 
+> **Note:** The `.mcp.json` config uses [`uvx`](https://docs.astral.sh/uv/) to launch the MCP server. If you installed Basic Memory via `pip`, you can either [install `uv`](https://docs.astral.sh/uv/getting-started/installation/) or update `.mcp.json` to use `basic-memory mcp` directly.
+
 ### 2. Configure the MCP Server
 
 Copy `.mcp.json` from this repo into your project root (or `~/.copilot/`):
@@ -226,4 +228,4 @@ Skill content improvements apply principles from [12-factor-agents](https://gith
 
 ## License
 
-MIT — see original source for full license text.
+MIT — see [LICENSE](LICENSE).

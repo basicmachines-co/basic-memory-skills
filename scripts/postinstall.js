@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Installs memory skills to the first available skills directory.
+// Installs memory skills to all detected agent skill directories.
 // Supports: ~/.copilot/skills, ~/.claude/skills, ~/.agents/skills
 
 const fs = require('fs');
@@ -56,15 +56,17 @@ let installed = 0;
 try {
   for (const skillsDir of targets) {
     fs.mkdirSync(skillsDir, { recursive: true });
+    let count = 0;
     for (const skill of SKILLS) {
       const src = path.join(pkgRoot, skill);
       const dest = path.join(skillsDir, skill);
       if (fs.existsSync(src)) {
         copyDirSync(src, dest);
+        count++;
         installed++;
       }
     }
-    console.log(`✅ Installed ${SKILLS.length} memory skills → ${skillsDir}`);
+    console.log(`✅ Installed ${count}/${SKILLS.length} memory skills → ${skillsDir}`);
   }
 } catch (err) {
   console.error(`⚠️  Failed to install skills: ${err.message}`);
