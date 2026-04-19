@@ -1,15 +1,15 @@
 ---
 name: memory-schema
-description: "Schema lifecycle management for Basic Memory: discover unschemaed notes, infer schemas, create and edit schema definitions, validate notes, and detect drift. Applies Factor 4 (typed outputs) and Factor 5 (unified state). Use when working with structured note types (Task, Person, Meeting, etc.)."
+description: "Schema lifecycle management for Basic Memory: discover unschemaed notes, infer schemas, create and edit schema definitions, validate notes, and detect drift. Use when working with structured note types (Task, Person, Meeting, etc.)."
 ---
 
 # Memory Schema
 
 Manage structured note types using Basic Memory's Picoschema system. Schemas define what fields a note type should have, making notes uniform, queryable, and validatable.
 
-> **Factor 4 — Typed Outputs:** A schema-validated note is a reliable structured output from an agent session. The schema is the output type definition — just as a tool call has a typed return value, a note type has a schema. Schema validation is your CI check on note outputs.
+> A schema-validated note is a reliable structured output from an agent session. The schema is the output type definition — just as a tool call has a typed return value, a note type has a schema. Schema validation is your CI check on note outputs.
 >
-> **Factor 5 — Unified State:** Schemas enforce consistency across all notes of a type. Every Task note that follows the schema can be queried the same way, by any agent, in any session. Schemas are the contract that makes the knowledge graph queryable — not just readable.
+> Schemas enforce consistency across all notes of a type. Every Task note that follows the schema can be queried the same way, by any agent, in any session. Schemas are the contract that makes the knowledge graph queryable — not just readable.
 
 
 ## When to Use
@@ -179,7 +179,7 @@ schema_validate(identifier="meetings/2026-02-10-standup")
 
 ### Why Notes Need Fields in Both Frontmatter and Observations
 
-> **Factor 5 — Unified State, two different access patterns:**
+> **Two different access patterns:**
 >
 > Basic Memory has two querying modes that access notes differently:
 > - **`search_notes` with `metadata_filters`** — reads frontmatter. This is how you find notes by status, priority, etc.

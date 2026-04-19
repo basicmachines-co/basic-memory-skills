@@ -1,13 +1,13 @@
 ---
 name: memory-literary-analysis
-description: "Analyze a complete literary work into a structured Basic Memory knowledge graph. Covers schema design, entity seeding, chapter-by-chapter processing, cross-referencing, validation, and visualization. Applies Factor 12 (stateless reducer at scale) and Factor 3 (seed entities as pre-fetch targets)."
+description: "Analyze a complete literary work into a structured Basic Memory knowledge graph. Covers schema design, entity seeding, chapter-by-chapter processing, cross-referencing, validation, and visualization."
 ---
 
 # Memory Literary Analysis
 
 Transform a complete literary work into a structured knowledge graph. Characters, themes, chapters, locations, symbols, and literary devices become interconnected notes — searchable, validatable, and visualizable.
 
-> **Factor 12 — Stateless Reducer at Scale:** This pipeline IS the stateless reducer pattern applied to literary analysis. Each chapter-processing session is a stateless reducer:
+> This pipeline applies the stateless reducer pattern to literary analysis. Each chapter-processing session is a stateless reducer:
 >
 > 1. **Read state** — load the processing task note + any relevant entity stubs
 > 2. **Process** — analyze the current chapter batch, create/enrich notes
@@ -16,7 +16,7 @@ Transform a complete literary work into a structured knowledge graph. Characters
 >
 > The knowledge graph grows across sessions. The agent starts fresh every time. The task note is the checkpoint that makes this work. Use the **memory-tasks** skill to create it.
 
-> **Factor 3 — Phase 1 Seed = Pre-fetch Pattern:** Creating entity stubs before processing chapters is the pre-fetch pattern applied to literary analysis. You create `[[wiki-link]]` targets in advance so future agents can traverse the graph immediately, without needing to search for entities that should exist. Seed first; enrich later.
+> Creating entity stubs before processing chapters is a pre-fetch pattern. You create `[[wiki-link]]` targets in advance so future agents can traverse the graph immediately, without needing to search for entities that should exist. Seed first; enrich later.
 
 
 ## When to Use
@@ -239,7 +239,7 @@ Schema for literary technique and device notes.
 
 ## Phase 1: Seed Entities (Pre-fetch Pattern)
 
-> **Factor 3 — Pre-fetch:** Seed entities before processing chapters. This creates `[[wiki-link]]` targets that resolve immediately during chapter processing, so each session can traverse the graph without needing to search for entities that should exist. Stubs are cheap to create; missing link targets break graph traversal.
+> Seed entities before processing chapters. This creates `[[wiki-link]]` targets that resolve immediately during chapter processing, so each session can traverse the graph without needing to search for entities that should exist. Stubs are cheap to create; missing link targets break graph traversal.
 
 Before processing chapters, create stub notes for major entities so `[[wiki-links]]` resolve from the start.
 

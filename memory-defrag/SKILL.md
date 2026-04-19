@@ -1,13 +1,13 @@
 ---
 name: memory-defrag
-description: "Defragment and reorganize agent memory files: split bloated files, merge duplicates, remove stale information, and restructure the memory hierarchy. Applies Factor 9 (compact errors into context) — defrag strips resolved error traces, stale state, and noise that degrades context quality. Run weekly or on demand."
+description: "Defragment and reorganize agent memory files: split bloated files, merge duplicates, remove stale information, and restructure the memory hierarchy. Run weekly or on demand."
 ---
 
 # Memory Defrag
 
 Reorganize memory files for clarity, efficiency, and relevance. Like filesystem defragmentation but for knowledge.
 
-> **Factor 9 — Compact Errors Into Context:** Defrag is the scheduled application of context compaction. The goal is not just reorganization — it's noise removal. Resolved error traces, failed-attempt histories, superseded workarounds, and stale status logs are all context pollution. A defragged knowledge base gives future agents better signal per token.
+> Defrag is the scheduled application of context compaction. The goal is not just reorganization — it's noise removal. Resolved error traces, failed-attempt histories, superseded workarounds, and stale status logs are all context pollution. A defragged knowledge base gives future agents better signal per token.
 >
 > **The fresh-agent test:** Before each note, ask: "If I gave this to a fresh agent with zero context about this project, would it help them make better decisions — or would it confuse or mislead them?" Remove what fails this test.
 
@@ -46,7 +46,7 @@ Look for these common issues:
 | **Poor organization** | Related info scattered across files | Restructure by topic |
 | **Recursive nesting** | `memory/memory/memory/...` directories | Delete nested dirs (indexer bug artifact) |
 
-### Resolved Error Traces (Factor 9)
+### Resolved Error Traces
 
 Resolved error traces deserve special attention. These are:
 - Debugging step-by-step logs from incidents that are now closed

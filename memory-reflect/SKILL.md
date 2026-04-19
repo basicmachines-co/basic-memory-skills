@@ -1,13 +1,13 @@
 ---
 name: memory-reflect
-description: "Sleep-time memory reflection: review recent conversations and daily notes, extract insights, and consolidate into long-term memory. Applies 12-factor-agents Factor 9 (compact errors into context) — reflection is context compaction, not journaling. Use when triggered by cron, heartbeat, or explicit request."
+description: "Sleep-time memory reflection: review recent conversations and daily notes, extract insights, and consolidate into long-term memory. Use when triggered by cron, heartbeat, or explicit request."
 ---
 
 # Memory Reflect
 
 Distill recent activity into durable long-term memory by compacting signal from noise.
 
-> **Factor 9 — Compact Errors Into Context:** Reflection is not archiving. It is *compaction*. The goal is not to preserve everything that happened — it is to distill what matters and discard what doesn't. MEMORY.md should shrink (or stay flat) as often as it grows. If it only ever grows, you're journaling, not reflecting.
+> Reflection is not archiving. It is *compaction*. The goal is not to preserve everything that happened — it is to distill what matters and discard what doesn't. MEMORY.md should shrink (or stay flat) as often as it grows. If it only ever grows, you're journaling, not reflecting.
 
 Inspired by sleep-time compute — the idea that memory formation happens best *between* active sessions, not during them.
 

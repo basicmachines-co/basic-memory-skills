@@ -1,6 +1,6 @@
 ---
 name: memory-tasks
-description: "Task management via Basic Memory schemas: create, track, and resume structured tasks that survive context compaction. Applies 12-factor-agents principles: stateless reducer framing (Factor 12), unified execution state (Factor 5), and explicit pause/resume protocols (Factor 6)."
+description: "Task management via Basic Memory schemas: create, track, and resume structured tasks that survive context compaction."
 ---
 
 # Memory Tasks
@@ -9,7 +9,7 @@ Manage work-in-progress using Basic Memory's schema system. Tasks are just notes
 
 ---
 
-> **Factor 12 — Stateless Reducer:** Your Copilot CLI session is stateless. The Task note IS the execution state — not a record of it.
+> Your agent session is stateless. The Task note IS the execution state — not a record of it.
 >
 > **Each session follows this loop:**
 > 1. **Read state** — `search_notes(note_types=["task"], status="active")`
@@ -93,9 +93,9 @@ What future-you needs to pick up this work. Include:
 )
 ```
 
-### Why Both Frontmatter and Observations? (Factor 5)
+### Why Both Frontmatter and Observations?
 
-> **Factor 5 — Unified Execution State:** The task note is the single source of truth. Frontmatter and observations serve *different roles* — they are not redundant:
+> The task note is the single source of truth. Frontmatter and observations serve *different roles* — they are not redundant:
 >
 > - **Frontmatter** (`metadata`) → powers `search_notes` with `metadata_filters`. This is how agents *find* tasks by status, priority, etc.
 > - **Observations** (`- [status] active`) → powers `schema_validate`. This is how the schema system checks conformance.
@@ -111,7 +111,7 @@ Don't let the two diverge — if frontmatter says `status: done` but observation
 - **Relations link to other entities** — `parent_task [[Other Task]]`, `related_to [[Some Note]]`
 - **`note_type` is case-sensitive** — `write_note(note_type="Task")` stores the type as lowercase `task` in frontmatter. Use `note_types=["task"]` (lowercase) in search queries.
 
-## Resume Protocol (Factor 6)
+## Resume Protocol
 
 On session start or after compaction, follow this sequence exactly:
 
@@ -136,7 +136,7 @@ read_note(identifier="tasks/my-active-task")
 # If steps 1, 2 are checked but current_step=3 → correct, continue with step 3
 ```
 
-## Pause Protocol (Factor 6)
+## Pause Protocol
 
 Run this before any `/compact` event, end of session, or before any long-running tool call that might trigger compaction:
 

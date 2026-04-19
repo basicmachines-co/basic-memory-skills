@@ -1,13 +1,13 @@
 ---
 name: memory-metadata-search
-description: "Structured metadata search for Basic Memory: query notes by custom frontmatter fields using equality, range, array, and nested filters. Applies Factor 3 (precision context retrieval) and Factor 5 (consistent status fields). Use when finding notes by status, priority, confidence, or any custom YAML field."
+description: "Structured metadata search for Basic Memory: query notes by custom frontmatter fields using equality, range, array, and nested filters. Use when finding notes by status, priority, confidence, or any custom YAML field."
 ---
 
 # Memory Metadata Search
 
 Find notes by their structured frontmatter fields instead of (or in addition to) free-text content. Any custom YAML key in a note's frontmatter beyond the standard set (`title`, `type`, `tags`, `permalink`, `schema`) is automatically indexed as `entity_metadata` and becomes queryable.
 
-> **Factor 3 — Own Your Context Window:** Metadata search is precision context retrieval. Instead of loading all notes into context or running a broad text search that returns noise, use metadata filters to retrieve exactly the notes relevant to the current step.
+> Metadata search is precision context retrieval. Instead of loading all notes into context or running a broad text search that returns noise, use metadata filters to retrieve exactly the notes relevant to the current step.
 >
 > The pattern: **search precisely, load only what the next decision needs.**
 >
@@ -19,7 +19,7 @@ Find notes by their structured frontmatter fields instead of (or in addition to)
 > search_notes(note_types=["task"], status="active", metadata_filters={"assigned_to": "claude"})
 > ```
 
-> **Factor 5 — Unified State:** Metadata filters work best when status fields are consistent across all notes of a type. If Task notes sometimes use `status: in-progress` and sometimes `status: active`, metadata filters become unreliable. Schemas enforce this consistency — use them. See the **memory-schema** skill.
+> Metadata filters work best when status fields are consistent across all notes of a type. If Task notes sometimes use `status: in-progress` and sometimes `status: active`, metadata filters become unreliable. Schemas enforce this consistency — use them. See the **memory-schema** skill.
 
 
 ## When to Use
@@ -188,7 +188,7 @@ search_notes("tag:security")
 search_notes("OAuth", metadata_filters={"status": "in-progress"})
 ```
 
-## Context Retrieval Patterns (Factor 3)
+## Context Retrieval Patterns
 
 Metadata search is most powerful when used for session setup — retrieving precisely the right context before starting work:
 

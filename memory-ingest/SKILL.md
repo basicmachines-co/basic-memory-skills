@@ -1,13 +1,13 @@
 ---
 name: memory-ingest
-description: "Process unstructured external input (meeting transcripts, conversation logs, pasted documents) into structured Basic Memory entities. Applies Factor 3 (own your context window) — structure entities for retrieval, not storage. Extracts entities, searches for matches, proposes with approval, creates notes."
+description: "Process unstructured external input (meeting transcripts, conversation logs, pasted documents) into structured Basic Memory entities. Extracts entities, searches for matches, proposes with approval, creates notes."
 ---
 
 # Memory Ingest
 
 Turn raw, unstructured input into structured Basic Memory entities. Meeting transcripts, conversation logs, pasted documents, email threads — anything with information worth preserving gets parsed, cross-referenced against existing knowledge, and written as proper notes.
 
-> **Factor 3 — Own Your Context Window:** Every entity you create is a future context investment. Structure notes not just to store information, but so that a future agent can retrieve exactly what it needs to make the next decision. Ask: "Will this note give a future agent what it needs?"
+> Every entity you create is a future context investment. Structure notes not just to store information, but so that a future agent can retrieve exactly what it needs to make the next decision. Ask: "Will this note give a future agent what it needs?"
 
 
 ## When to Use
@@ -117,7 +117,7 @@ Include enough context with each proposed entity for the user to make a quick de
 
 Create the primary note for the ingested content. This is the "record of what happened" — it preserves the raw material and adds structured metadata.
 
-> **Factor 3 — Structure for retrieval:** When writing observations, ask: "Will this category help a future agent find this note when searching for related information?" Use categories that answer the *purpose* of the content, not just its format.
+> Structure observations for retrieval: ask "Will this category help a future agent find this note when searching for related information?" Use categories that answer the *purpose* of the content, not just its format.
 
 
 ### Meeting / Conversation Note
@@ -316,7 +316,7 @@ build_context(url="memory://meetings/2026/novatech-meeting-jordan-rivera-feb-22-
 
 If key entities don't appear in the traversal, check that relations were written correctly. A disconnected entity is harder for future sessions to find via `build_context`.
 
-> **Factor 3 — Context investment payoff:** The traversability check ensures your ingest work actually pays off in future sessions. An entity that can't be reached from its source note via `build_context` may as well not exist.
+> The traversability check ensures your ingest work actually pays off in future sessions. An entity that can't be reached from its source note via `build_context` may as well not exist.
 
 
 ## Guidelines

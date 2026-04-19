@@ -1,17 +1,17 @@
 ---
 name: memory-lifecycle
-description: "Manage entity status transitions in Basic Memory: archive completed work, move notes between status folders, update frontmatter, and handle edge cases. Applies Factor 5 (folder IS the canonical status) and Factor 6 (archive=pause, reactivate=resume). Core principle: archive, never delete."
+description: "Manage entity status transitions in Basic Memory: archive completed work, move notes between status folders, update frontmatter, and handle edge cases. Core principle: archive, never delete."
 ---
 
 # Memory Lifecycle
 
 Manage how entities move through status stages in Basic Memory. The core principle: **archive, never delete.** Completed work is valuable context — move it out of the active view, but keep it in the knowledge graph.
 
-> **Factor 5 — Unified Execution State:** The folder location IS the canonical status. The system doesn't maintain a separate status registry — the path is the state. `tasks/active/my-task.md` is active. `tasks/completed/my-task.md` is done. You don't need to check a status field to know; the filesystem tells you.
+> The folder location IS the canonical status. The system doesn't maintain a separate status registry — the path is the state. `tasks/active/my-task.md` is active. `tasks/completed/my-task.md` is done. You don't need to check a status field to know; the filesystem tells you.
 >
 > This also means: **move first, then update frontmatter.** The folder move is the authoritative state transition. The frontmatter update is a secondary synchronization step to keep metadata search consistent.
 
-> **Factor 6 — Launch/Pause/Resume:** The lifecycle pattern implements Factor 6 at the entity level. Archiving is pausing — the entity is preserved but removed from the active view. Reactivating is resuming — you restore it to the active path and pick up where you left off. The entity note is the state that makes resume possible.
+> Archiving is pausing — the entity is preserved but removed from the active view. Reactivating is resuming — you restore it to the active path and pick up where you left off. The entity note is the state that makes resume possible.
 
 
 ## When to Use
@@ -92,7 +92,7 @@ If multiple matches come back, present options and ask which one.
 
 If no match is found, ask for clarification — don't guess.
 
-### 2. Move the File (Factor 5 — Primary State Transition)
+### 2. Move the File
 
 Use `move_note` to relocate the entity to the appropriate status folder. This is the canonical state change:
 
@@ -171,7 +171,7 @@ edit_note(
 )
 ```
 
-> **Factor 6 — Resume:** The entity note contains everything needed to resume the work. Before reactivating, read the note to understand where the entity was when it was archived. The context in the note IS the resume state.
+> The entity note contains everything needed to resume the work. Before reactivating, read the note to understand where the entity was when it was archived. The context in the note IS the resume state.
 
 
 ### Status Without Movement

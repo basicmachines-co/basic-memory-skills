@@ -1,13 +1,13 @@
 ---
 name: memory-notes
-description: "How to write well-structured Basic Memory notes: frontmatter, observations with semantic categories, relations with wiki-links, and best practices for building a rich knowledge graph. Includes context hygiene and pre-fetch patterns from 12-factor-agents (Factor 3). Use when creating or improving notes."
+description: "How to write well-structured Basic Memory notes: frontmatter, observations with semantic categories, relations with wiki-links, and best practices for building a rich knowledge graph. Use when creating or improving notes."
 ---
 
 # Memory Notes
 
 Write well-structured notes that Basic Memory can parse into a searchable knowledge graph. Every note is a markdown file with three key sections: frontmatter, observations, and relations.
 
-> **Factor 12 — Stateless Reducer:** Your Copilot CLI session is stateless. Notes are the state. If it's not in a note, it doesn't exist in the next session. Write early and often.
+> Your agent session is stateless. Notes are the state. If it's not in a note, it doesn't exist in the next session. Write early and often.
 
 
 ## Note Anatomy
@@ -248,9 +248,9 @@ edit_note(
 
 This preserves existing content and keeps the edit history clean.
 
-## Context Hygiene (Factor 3)
+## Context Hygiene
 
-> **Factor 3 — Own Your Context Window:** Notes that get returned to the LLM cost tokens. Every line in a note that enters context should earn its place. Structure notes for the agent that will read them, not for human completeness.
+> Notes that get returned to the LLM cost tokens. Every line in a note that enters context should earn its place. Structure notes for the agent that will read them, not for human completeness.
 
 ### What NOT to Put in Notes (or to Remove Over Time)
 

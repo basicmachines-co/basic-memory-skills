@@ -1,13 +1,13 @@
 ---
 name: memory-research
-description: "Research an external subject using web search, synthesize findings into a structured Basic Memory entity. Applies Factor 3 (own your context window) — research notes are context investments; capture why you searched, not just what you found. Use when asked to research a company, person, technology, or topic."
+description: "Research an external subject using web search, synthesize findings into a structured Basic Memory entity. Use when asked to research a company, person, technology, or topic."
 ---
 
 # Memory Research
 
 Research an external subject, synthesize what you find, and create a structured Basic Memory entity — with the user's approval.
 
-> **Factor 3 — Own Your Context Window:** A research note is a context investment. Structure it so that `build_context(['research-topic'])` returns exactly what a future agent needs to continue this work — not just what you found, but **why you searched** and what decision it's meant to inform.
+> A research note is a context investment. Structure it so that `build_context(['research-topic'])` returns exactly what a future agent needs to continue this work — not just what you found, but **why you searched** and what decision it's meant to inform.
 >
 > The user's purpose is the most valuable retrieval signal. Capture it.
 
