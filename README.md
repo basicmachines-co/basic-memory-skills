@@ -52,7 +52,7 @@ Verify the Basic Memory tools are available — you should see `write_note`, `re
 npm install -g basic-memory-skills
 ```
 
-Skills are automatically copied to `~/.copilot/skills/` (and `~/.claude/skills/` if present). Then in Copilot CLI:
+Skills are automatically copied to `~/.copilot/skills/` (and `~/.claude/skills/`) when the corresponding agent home directory exists. Then in Copilot CLI:
 
 ```
 /skills reload

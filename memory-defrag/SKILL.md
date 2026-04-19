@@ -119,6 +119,6 @@ After changes:
 - **Target 15-25 focused files.** Too few means bloated files; too many means fragmentation.
 - **File names should be scannable.** Use descriptive names: `people.md`, `project-status.md`, `competitive-landscape.md` — not `notes-2.md`.
 - **Don't over-organize.** One level of directories is usually enough. `memory/tasks/` and `memory/competitive/` are fine; `memory/work/projects/active/basic-memory/notes/` is not.
-- **Completed tasks**: Tasks with `status: done` older than 14 days can be removed. Their insights should already be in MEMORY.md via reflection.
+- **Completed tasks**: Tasks with `status: done` older than 14 days should be archived (not deleted). Their insights should already be in MEMORY.md via reflection.
 - **Ask before destructive changes.** If uncertain whether information is still relevant, keep it with a `(review needed)` tag rather than deleting.
 - **Distill, don't just remove.** When pruning error traces or stale observations, ask if there's a one-line lesson worth keeping before deleting entirely.

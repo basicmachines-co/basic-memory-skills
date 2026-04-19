@@ -61,6 +61,10 @@ try {
       const src = path.join(pkgRoot, skill);
       const dest = path.join(skillsDir, skill);
       if (fs.existsSync(src)) {
+        // Remove existing dest to clean stale files from prior versions
+        if (fs.existsSync(dest)) {
+          fs.rmSync(dest, { recursive: true, force: true });
+        }
         copyDirSync(src, dest);
         count++;
         installed++;

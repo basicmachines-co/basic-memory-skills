@@ -95,7 +95,7 @@ npx skills add basicmachines-co/basic-memory-skills --agent claude
 
 ## Commit Conventions
 
-All commits follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/), enforced by [commitlint](https://github.com/conventional-changelog/commitlint).
+All commits follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/). A [commitlint](https://github.com/conventional-changelog/commitlint) configuration is included — run `npx commitlint --edit` to validate commit messages locally.
 
 ```
 <type>[optional scope]: <description>
