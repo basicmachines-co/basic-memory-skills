@@ -13,7 +13,7 @@
   "homepage": "https://github.com/tyler555g/copilot-memory-skills",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tyler555g/copilot-memory-skills.git"
+    "url": "git+https://github.com/tyler555g/copilot-memory-skills.git"
   },
   "license": "MIT",
   "author": "tyler555g",
