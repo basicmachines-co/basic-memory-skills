@@ -58,7 +58,23 @@ Skills are automatically copied to `~/.copilot/skills/` (and `~/.claude/skills/`
 /skills reload
 ```
 
-**Option B — manual:**
+**Option B — npx (other agents):**
+
+```bash
+# Install all skills
+npx skills add tyler555g/copilot-memory-skills
+
+# Install a specific skill
+npx skills add tyler555g/copilot-memory-skills --skill memory-tasks
+
+# Check for updates
+npx skills check
+
+# Update installed skills
+npx skills update
+```
+
+**Option C — manual:**
 
 Clone this repo and copy any skill folder into `~/.copilot/skills/`:
 
@@ -136,6 +152,32 @@ Each session: read state → process → write state → exit
 ```
 
 Applied to: `memory-tasks`, `memory-literary-analysis`, and as framing in `memory-notes`
+
+---
+
+## Basic Memory Cloud
+
+Everything works locally — cloud adds cross-device, team, and production capabilities:
+
+- **Your agent's memory travels with you** — same knowledge graph on laptop, desktop, and hosted environments
+- **Team knowledge sharing** — org workspaces let multiple agents and team members build on a shared knowledge base
+- **Durable memory for production agents** — persistent memory that survives CI teardowns and container restarts
+- **Multi-agent coordination** — multiple agents can read and write to the same graph
+
+Cloud extends local-first — still plain markdown, still yours. Start with a [7-day free trial](https://basicmemory.com) and use code `BMFOSS` for 20% off for 3 months.
+
+---
+
+## Compatible Agents
+
+These skills work with any AI coding agent that supports the SKILL.md format:
+
+- **GitHub Copilot CLI** — primary target; uses `~/.copilot/skills/`
+- **Claude Code** — loads skills from `~/.claude/skills/` or `.claude/skills/`
+- **Claude Desktop** — upload skill ZIPs via Settings > Capabilities
+- **Cursor** — AI-powered coding with skill support
+- **Windsurf** — agent-based development with skill loading
+- **Any agent** supporting markdown-based skill files
 
 ---
 

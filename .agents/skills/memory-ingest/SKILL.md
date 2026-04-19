@@ -1,14 +1,11 @@
 ---
 name: memory-ingest
-description: "Process unstructured external input (meeting transcripts, conversation logs, pasted documents) into structured Basic Memory entities. Applies Factor 3 (own your context window) — structure entities for retrieval, not storage. Extracts entities, searches for matches, proposes with approval, creates notes."
+description: "Process unstructured external input (meeting transcripts, conversation logs, pasted documents) into structured Basic Memory entities. Extracts entities, searches for existing matches, proposes new entities with approval, creates notes with observations and relations, and captures action items."
 ---
 
 # Memory Ingest
 
 Turn raw, unstructured input into structured Basic Memory entities. Meeting transcripts, conversation logs, pasted documents, email threads — anything with information worth preserving gets parsed, cross-referenced against existing knowledge, and written as proper notes.
-
-> **Factor 3 — Own Your Context Window:** Every entity you create is a future context investment. Structure notes not just to store information, but so that a future agent can retrieve exactly what it needs to make the next decision. Ask: "Will this note give a future agent what it needs?"
-
 
 ## When to Use
 
@@ -28,7 +25,6 @@ Turn raw, unstructured input into structured Basic Memory entities. Meeting tran
 6. Create source note        → verbatim content + observations + relations
 7. Create approved entities  → structured notes for each new entity
 8. Extract action items      → follow-ups and commitments
-9. Verify traversability     → confirm the graph is connected
 ```
 
 ## Step 1: Parse Raw Input
@@ -116,9 +112,6 @@ Include enough context with each proposed entity for the user to make a quick de
 ## Step 6: Create the Source Note
 
 Create the primary note for the ingested content. This is the "record of what happened" — it preserves the raw material and adds structured metadata.
-
-> **Factor 3 — Structure for retrieval:** When writing observations, ask: "Will this category help a future agent find this note when searching for related information?" Use categories that answer the *purpose* of the content, not just its format.
-
 
 ### Meeting / Conversation Note
 
@@ -288,7 +281,6 @@ write_note(
 
 Adapt templates to your domain. The key elements are: type and tags as parameters, an overview section, observations with categories, and relations linking back to the source.
 
-
 ## Step 8: Extract Action Items
 
 Review the source content for commitments and follow-ups:
@@ -304,20 +296,6 @@ Follow-Up Reminders:
 ```
 
 If using the **memory-tasks** skill, create Task notes for your action items. Otherwise, capture them as observations in the source note.
-
-## Step 9: Verify Graph Traversability
-
-After creating all entities, verify the graph is properly connected:
-
-```python
-# Build context starting from the source note — should traverse to all related entities
-build_context(url="memory://meetings/2026/novatech-meeting-jordan-rivera-feb-22-2026")
-```
-
-If key entities don't appear in the traversal, check that relations were written correctly. A disconnected entity is harder for future sessions to find via `build_context`.
-
-> **Factor 3 — Context investment payoff:** The traversability check ensures your ingest work actually pays off in future sessions. An entity that can't be reached from its source note via `build_context` may as well not exist.
-
 
 ## Guidelines
 

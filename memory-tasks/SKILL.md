@@ -21,6 +21,7 @@ Manage work-in-progress using Basic Memory's schema system. Tasks are just notes
 
 ---
 
+
 ## When to Use
 
 - **Starting multi-step work** (3+ steps, or anything that might outlast the context window)
@@ -194,6 +195,7 @@ completed: YYYY-MM-DD
 ```
 
 Add a brief summary of what was accomplished and any follow-up needed.
+
 
 ## Querying Tasks
 

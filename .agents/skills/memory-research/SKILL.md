@@ -1,16 +1,11 @@
 ---
 name: memory-research
-description: "Research an external subject using web search, synthesize findings into a structured Basic Memory entity. Applies Factor 3 (own your context window) — research notes are context investments; capture why you searched, not just what you found. Use when asked to research a company, person, technology, or topic."
+description: "Research an external subject using web search, synthesize findings into a structured Basic Memory entity. Use when asked to research a company, person, technology, or topic — or when a bare name or URL is provided that implies a research request."
 ---
 
 # Memory Research
 
 Research an external subject, synthesize what you find, and create a structured Basic Memory entity — with the user's approval.
-
-> **Factor 3 — Own Your Context Window:** A research note is a context investment. Structure it so that `build_context(['research-topic'])` returns exactly what a future agent needs to continue this work — not just what you found, but **why you searched** and what decision it's meant to inform.
->
-> The user's purpose is the most valuable retrieval signal. Capture it.
-
 
 ## When to Use
 
@@ -27,19 +22,7 @@ Research an external subject, synthesize what you find, and create a structured 
 
 ## Workflow
 
-### Step 1: Capture the Research Purpose
-
-Before searching, note *why* the user is asking. This context is the most durable part of the research note — web facts go stale, but the user's intent doesn't.
-
-```
-User said: "Acme Corp — saw them at the conference"
-→ Purpose: evaluate as potential partner; first contact was at conference
-→ Capture as: [context] Met at conference; evaluating for partnership
-```
-
-If the purpose is implicit (bare name or URL), note the apparent context based on what you know about the user's current work.
-
-### Step 2: Web Research
+### Step 1: Web Research
 
 Search for current information across multiple sources. Aim for 3-5 searches to build a well-rounded picture:
 
@@ -59,7 +42,7 @@ Search for current information across multiple sources. Aim for 3-5 searches to 
 | **Technology** | What it does, who maintains it, maturity, ecosystem, alternatives, adoption |
 | **Topic/Domain** | Definition, current state, key players, trends, relevance to user's context |
 
-### Step 3: Check Existing Knowledge
+### Step 2: Check Existing Knowledge
 
 Before proposing a new entity, search Basic Memory:
 
@@ -77,7 +60,7 @@ If the entity already exists:
 
 If the entity doesn't exist, proceed to evaluation.
 
-### Step 4: Evaluate and Summarize
+### Step 3: Evaluate and Summarize
 
 Present your findings in a structured summary. Include all relevant information organized by section:
 
@@ -93,9 +76,6 @@ Present your findings in a structured summary. Include all relevant information 
 - [Stage, funding, leadership for orgs]
 - [Role, expertise, affiliations for people]
 - [Maturity, ecosystem, alternatives for tech]
-
-**Why You're Asking:** [User's stated or inferred purpose — what decision this research informs]
-
 
 **Relevance:** [Why this matters to the user — connection to their work, domain, or interests.
 If no obvious connection: "No specific connection identified."]
@@ -117,7 +97,7 @@ If no obvious connection: "No specific connection identified."]
 
 **Let the user define relevance.** Don't impose a fixed evaluation framework. Instead, highlight facts and let the user draw conclusions. If the user has a specific evaluation rubric (strategic fit, buy/partner/compete, etc.), they'll tell you — apply it when asked.
 
-### Step 5: Propose Entity Creation
+### Step 4: Propose Entity Creation
 
 After presenting the summary, ask for approval:
 
@@ -129,9 +109,9 @@ Create Basic Memory entity for [Subject]?
   [yes / no / modify]
 ```
 
-If the user provided context with their request ("saw them at the conference"), confirm it will be captured in the entity.
+If the user provided context with their request ("saw them at the conference"), include that context in the proposed entity.
 
-### Step 6: Create the Entity
+### Step 5: Create the Entity
 
 After approval, create a structured note. Adapt the template to the entity type:
 
@@ -160,8 +140,6 @@ write_note(
 
 ## Observations
 - [relevance] Why this entity matters in user's context
-- [context] Why the user is researching this (their stated or inferred purpose)
-
 - [source] Researched on YYYY-MM-DD
 - [additional observations from research findings]
 
@@ -191,8 +169,6 @@ write_note(
 ## Observations
 - [role] Title at Organization
 - [expertise] Key technical or domain expertise
-- [context] Why the user is researching this person
-
 - [source] Researched on YYYY-MM-DD
 
 ## Relations
@@ -222,8 +198,6 @@ write_note(
 ## Observations
 - [definition] What this technology does in one sentence
 - [maturity] Current state and adoption level
-- [context] Why the user is evaluating this technology
-
 - [source] Researched on YYYY-MM-DD
 
 ## Relations
@@ -233,9 +207,9 @@ write_note(
 
 Adapt these templates freely. The key elements are: note_type/tags parameters, an overview, structured details, observations with categories, and relations.
 
-### Step 7: Store Source Context
+### Step 6: Store Source Context
 
-If the user provided context with their request, always capture it in the entity:
+If the user provided context with their request, capture it in the entity:
 
 ```python
 # User said: "Acme Corp — saw their demo at the conference last week"
@@ -243,11 +217,11 @@ edit_note(
   identifier="Acme Corp",
   operation="append",
   section="Observations",
-  content="- [context] Saw their demo at conference, week of 2026-02-17 — evaluating for partnership"
+  content="- [context] Saw their demo at conference, week of 2026-02-17"
 )
 ```
 
-> **This is the most valuable part of research notes.** Web facts are re-searchable. The user's relationship to the entity — why they care, when they encountered it, what decision they're trying to make — is not. If you capture nothing else, capture this.
+This context is often the most valuable part — it's the user's relationship to the entity, which web research can't provide.
 
 ## Guidelines
 
@@ -256,6 +230,6 @@ edit_note(
 - **Hedge uncertain information.** Use qualifiers for estimates, unverified claims, and inferred details.
 - **Store source URLs.** Include the URLs you consulted, either in observations or a Sources section. This enables the user to verify and dig deeper.
 - **Get approval before creating.** Present your findings and let the user decide whether to create the entity and what to include.
-- **Capture user context.** If the user told you *why* they're researching, that context belongs in the entity — it's the part that ages best.
+- **Capture user context.** If the user told you *why* they're researching (met at a conference, evaluating as a vendor, etc.), that context belongs in the entity.
 - **Don't over-research.** 3-5 web searches is usually enough. The goal is a useful knowledge graph entry, not an exhaustive report.
 - **Link to existing knowledge.** Relate the new entity to things already in the knowledge graph. Connections compound value.

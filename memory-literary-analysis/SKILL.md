@@ -18,6 +18,7 @@ Transform a complete literary work into a structured knowledge graph. Characters
 
 > **Factor 3 — Phase 1 Seed = Pre-fetch Pattern:** Creating entity stubs before processing chapters is the pre-fetch pattern applied to literary analysis. You create `[[wiki-link]]` targets in advance so future agents can traverse the graph immediately, without needing to search for entities that should exist. Seed first; enrich later.
 
+
 ## When to Use
 
 - Analyzing a novel, play, poem, or non-fiction book end-to-end
@@ -240,7 +241,7 @@ Schema for literary technique and device notes.
 
 > **Factor 3 — Pre-fetch:** Seed entities before processing chapters. This creates `[[wiki-link]]` targets that resolve immediately during chapter processing, so each session can traverse the graph without needing to search for entities that should exist. Stubs are cheap to create; missing link targets break graph traversal.
 
-Before processing chapters, create stub notes for major entities.
+Before processing chapters, create stub notes for major entities so `[[wiki-links]]` resolve from the start.
 
 ### Characters (major)
 
@@ -333,7 +334,7 @@ Obtain the full text and identify chapter/section boundaries. For public domain 
 
 ### Batching Strategy
 
-Process ~10 chapters per batch to balance depth with progress:
+Process ~10 chapters per batch to balance depth with progress. Group by narrative arc or thematic focus:
 
 | Batch | Typical Content |
 |-------|----------------|
@@ -342,6 +343,9 @@ Process ~10 chapters per batch to balance depth with progress:
 | 4-6 | Middle: complications, turning points, thematic deepening |
 | 7-8 | Climax approach: escalation, revelations, crises |
 | Final | Climax, resolution, epilogue |
+
+Adjust batch size based on chapter length and density. Short, action-heavy chapters can be batched in larger groups; long, philosophically dense chapters may need smaller batches.
+
 
 ### Per-Chapter Workflow
 
@@ -415,7 +419,7 @@ edit_note(
 | `[summary]` | 1-2 sentence chapter synopsis |
 | `[event]` | Key plot events (actions, revelations, arrivals) |
 | `[tone]` | Emotional and stylistic atmosphere |
-| `[technique]` | Narrative innovations (POV shifts, structural experiments) |
+| `[technique]` | Narrative innovations (POV shifts, structural experiments, genre blending) |
 | `[quote]` | Memorable or thematically significant passages |
 | `[significance]` | Why this chapter matters to the whole |
 | `[foreshadowing]` | Hints at future events |
@@ -438,6 +442,10 @@ After the structured observations are in place, consider adding interpretive pro
 - Include subjective opinions clearly marked as such ("In my reading...", "I find...")
 - Ground claims in textual evidence cited by chapter number
 
+
+The prose adds the interpretive texture that structured observations alone cannot capture.
+
+
 ## Phase 3: Cross-Referencing
 
 After all chapters are processed:
@@ -449,7 +457,7 @@ For each major character, write a full `[arc]` summary observation covering thei
 For each theme, add `[evolution]` observations tracing how it develops from introduction to resolution.
 
 ### Chapter Parallels
-Add `parallels` and `contrasts_with` relations between structurally similar chapters.
+Add `parallels` and `contrasts_with` relations between structurally similar chapters (e.g., mirrored scenes, repeated settings, thematic echoes).
 
 ### Analysis Notes
 Create synthesis notes in `analysis/`:
@@ -470,43 +478,80 @@ Analysis of the work's narrative architecture.
 ...
 
 ## Relations
-- analyzes [[<Protagonist>]]
+- analyzes [[<Key Character>]]
 - explores [[<Central Theme>]]
 ..."""
 )
 ```
 
+Recommended analysis notes:
+- **Narrative Structure** — overall architecture and pacing
+- **Work Overview** — synthesis of the complete work (summary, thesis, legacy)
+- **Critical Reception** — historical and contemporary interpretations
+
+### Discover Emergent Entities
+During chapter processing, new minor characters, locations, and symbols will emerge. Create notes for any that appear in 3+ chapters or carry thematic weight.
+
 ## Phase 4: Validation
 
+### Schema Validation
+
 ```python
+# Validate each entity type
+
 schema_validate(noteType="Character")
 schema_validate(noteType="Theme")
 schema_validate(noteType="Chapter")
 schema_validate(noteType="Location")
 schema_validate(noteType="Symbol")
 schema_validate(noteType="LiteraryDevice")
+```
+
+### Drift Detection
+
+```python
 
 schema_diff(noteType="Character")
 # ... for each type
 ```
 
+Fix issues found — common fixes:
+- Missing required observation categories → add them via `edit_note`
+- Enum values outside allowed set → correct metadata
+- Fields in notes but not schema → add as optional to schema if legitimate
+
+### Relation Consistency
+Spot-check bidirectional relations: if Chapter X `features [[Character]]`, does Character have observations referencing Chapter X? Fix gaps.
+
 ## Phase 5: Visualization
 
+Generate canvas files for visual exploration:
+
 ```python
+# Character relationship web
 canvas(query="type:Character AND role:protagonist OR role:antagonist OR role:supporting")
+
+# Theme connections
 canvas(query="type:Theme")
+
+# Chapter timeline with key events
+
 canvas(query="type:Chapter", layout="timeline")
 ```
 
 ## Adapting to Other Genres
 
+This pipeline works for any literary text. Adjust schemas for genre:
+
 | Genre | Schema Adjustments |
 |-------|-------------------|
-| **Novel** | Base schemas work as-is |
-| **Play** | Add `Act` and `Scene` schemas; Character gets `speaking_lines` |
-| **Poetry collection** | Replace Chapter with `Poem`; add `form`, `meter`, `rhyme_scheme` |
+| **Novel** | Base schemas work as-is; add genre-specific Character fields as needed |
+| **Play** | Add `Act` and `Scene` schemas; Character gets `speaking_lines` field |
+| **Poetry collection** | Replace Chapter with `Poem`; add `form`, `meter`, `rhyme_scheme` fields |
 | **Non-fiction** | Replace Chapter with `Section`; add `Argument`, `Evidence` schemas |
-| **Memoir** | Character gets `relationship_to_narrator`; add `Memory` schema |
+| **Short story collection** | Add `Story` schema with `narrator`, `setting`, `word_count` |
+| **Epic/myth** | Add `Deity`, `Prophecy` schemas; Location gets `mythological_significance` |
+| **Memoir** | Character schema gets `relationship_to_narrator`; add `Memory` schema |
 
 ### Scaling Guidance
 
@@ -515,6 +560,7 @@ canvas(query="type:Chapter", layout="timeline")
 | Novella (~40K words) | 5-10 chapters | ~50-80 |
 | Novel (~80K words) | 8-12 chapters | ~100-150 |
 | Long novel (~200K+ words) | 10-15 chapters | ~200-300 |
+| Series (multiple volumes) | 1 volume at a time | ~200+ per volume |
 
 ## Related Skills
 
@@ -527,12 +573,14 @@ canvas(query="type:Chapter", layout="timeline")
 
 ## Guidelines
 
-- **Seed before processing.** Create entity stubs first — they're the pre-fetch anchors for the entire pipeline.
-- **Create the processing task before batch 1.** It's your state checkpoint across sessions.
-- **Batch for sanity.** ~10 chapters balances depth with momentum.
-- **Read the source text.** Don't rely on memory or summaries. Textual evidence is everything.
-- **Observations are your index.** Be generous with categories and specific with content.
-- **Relations are your web.** Every chapter should link to characters, themes, locations, and devices.
-- **Validate periodically.** Run `schema_validate` after each batch, not just at the end.
-- **Quote generously.** Literary analysis lives on textual evidence.
-- **Analysis comes last.** Synthesis notes in `analysis/` should be written after all chapters are processed.
+- **Seed before processing.** Create entity stubs first so wiki-links resolve immediately during chapter processing.
+- **Batch for sanity.** Processing ~10 chapters at a time balances depth with momentum. Track progress with a Task note.
+- **Read the source text.** Don't rely on memory or summaries. Read (or re-read) the actual text for each batch before creating notes. Textual evidence is everything.
+- **Observations are your index.** The knowledge graph's value comes from categorized observations. Be generous with categories and specific with content.
+- **Relations are your web.** Every chapter should link to characters, themes, locations, and devices. Every entity should link back to chapters where it appears.
+- **Enrich iteratively.** Entity notes grow richer with each chapter. Don't try to write the perfect character note upfront — append as you go.
+- **Add prose for depth.** After structured data is in place, add interpretive essays to major notes. The prose captures what observations cannot: argument, nuance, opinion, and voice.
+- **Validate periodically.** Run `schema_validate` after each batch, not just at the end. Catch drift early.
+- **Quote generously.** Literary analysis lives on textual evidence. Include significant quotes as `[quote]` observations with chapter attribution.
+- **Review and revise.** After completing all chapters, review the full graph from an external perspective. Look for thin notes, missing connections, and gaps in coverage. The first pass is never the last.
+- **Analysis comes last.** Synthesis notes in `analysis/` should be written after all chapters are processed, when you have the full picture.

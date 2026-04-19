@@ -1,16 +1,11 @@
 ---
 name: memory-schema
-description: "Schema lifecycle management for Basic Memory: discover unschemaed notes, infer schemas, create and edit schema definitions, validate notes, and detect drift. Applies Factor 4 (typed outputs) and Factor 5 (unified state). Use when working with structured note types (Task, Person, Meeting, etc.)."
+description: "Schema lifecycle management for Basic Memory: discover unschemaed notes, infer schemas, create and edit schema definitions, validate notes, and detect drift. Use when working with structured note types (Task, Person, Meeting, etc.) to maintain consistency across the knowledge graph."
 ---
 
 # Memory Schema
 
 Manage structured note types using Basic Memory's Picoschema system. Schemas define what fields a note type should have, making notes uniform, queryable, and validatable.
-
-> **Factor 4 — Typed Outputs:** A schema-validated note is a reliable structured output from an agent session. The schema is the output type definition — just as a tool call has a typed return value, a note type has a schema. Schema validation is your CI check on note outputs.
->
-> **Factor 5 — Unified State:** Schemas enforce consistency across all notes of a type. Every Task note that follows the schema can be queried the same way, by any agent, in any session. Schemas are the contract that makes the knowledge graph queryable — not just readable.
-
 
 ## When to Use
 
@@ -177,20 +172,8 @@ schema_validate(noteType="Meeting")
 schema_validate(identifier="meetings/2026-02-10-standup")
 ```
 
-### Why Notes Need Fields in Both Frontmatter and Observations
-
-> **Factor 5 — Unified State, two different access patterns:**
->
-> Basic Memory has two querying modes that access notes differently:
-> - **`search_notes` with `metadata_filters`** — reads frontmatter. This is how you find notes by status, priority, etc.
-> - **`schema_validate`** — checks for fields as observation categories in the note body (e.g., `- [status] active`).
->
-> These are the same state, served to different consumers. Frontmatter serves metadata search; observations serve schema validation. A field stored only in frontmatter fails schema validation. A field stored only in observations can't be metadata-filtered.
->
-> **Guidance:** For fields you need both to query AND to validate (like `status`, `current_step`), keep them in both places and keep them in sync. For fields only needed for one purpose, one location is fine.
-
 Validation reports:
-- **Missing required fields** — the note lacks a field the schema requires (as an observation category)
+- **Missing required fields** — the note lacks a field the schema requires
 - **Unknown fields** — the note has fields the schema doesn't define
 - **Type mismatches** — a field value doesn't match the expected type
 - **Invalid enum values** — a value isn't in the allowed set
