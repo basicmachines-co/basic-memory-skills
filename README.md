@@ -46,22 +46,32 @@ Verify the Basic Memory tools are available — you should see `write_note`, `re
 
 ### 3. Install These Skills
 
-From this repo root:
+**Option A — npm (recommended):**
 
-```
-/skills memory-notes
-/skills memory-tasks
-/skills memory-reflect
-/skills memory-ingest
-/skills memory-research
-/skills memory-schema
-/skills memory-defrag
-/skills memory-lifecycle
-/skills memory-metadata-search
-/skills memory-literary-analysis
+```bash
+npm install -g copilot-memory-skills
 ```
 
-Or to load all at once, point Copilot CLI to the repo directory.
+Skills are automatically copied to `~/.copilot/skills/` (and `~/.claude/skills/` if present). Then in Copilot CLI:
+
+```
+/skills reload
+```
+
+**Option B — manual:**
+
+Clone this repo and copy any skill folder into `~/.copilot/skills/`:
+
+```bash
+git clone https://github.com/tyler555g/copilot-memory-skills
+cp -r copilot-memory-skills/memory-* ~/.copilot/skills/
+```
+
+Then in Copilot CLI:
+
+```
+/skills reload
+```
 
 ---
 

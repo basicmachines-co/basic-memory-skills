@@ -1,0 +1,39 @@
+{
+  "name": "copilot-memory-skills",
+  "version": "1.0.0",
+  "description": "Basic Memory skills for GitHub Copilot CLI — persistent memory and knowledge management across sessions",
+  "keywords": [
+    "github-copilot",
+    "copilot-cli",
+    "skills",
+    "memory",
+    "basic-memory",
+    "agent-skills"
+  ],
+  "homepage": "https://github.com/tyler555g/copilot-memory-skills",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tyler555g/copilot-memory-skills.git"
+  },
+  "license": "MIT",
+  "author": "tyler555g",
+  "scripts": {
+    "postinstall": "node scripts/postinstall.js"
+  },
+  "files": [
+    "memory-defrag/",
+    "memory-ingest/",
+    "memory-lifecycle/",
+    "memory-literary-analysis/",
+    "memory-metadata-search/",
+    "memory-notes/",
+    "memory-reflect/",
+    "memory-research/",
+    "memory-schema/",
+    "memory-tasks/",
+    "scripts/"
+  ],
+  "engines": {
+    "node": ">=16"
+  }
+}
