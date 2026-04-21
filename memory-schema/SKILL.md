@@ -172,7 +172,14 @@ schema_validate(noteType="Meeting")
 schema_validate(identifier="meetings/2026-02-10-standup")
 ```
 
-**Important:** `schema_validate` checks for schema fields as **observation categories** in the note body — e.g., a `status` field expects `- [status] active` as an observation. Fields stored only in frontmatter metadata won't satisfy validation. To pass cleanly, include schema fields as both frontmatter values (for metadata search) and observations (for schema validation).
+### Why Notes Need Fields in Both Frontmatter and Observations
+
+Basic Memory has two querying modes that access notes differently:
+
+- **`search_notes` with `metadata_filters`** — reads frontmatter. This is how you find notes by status, priority, etc.
+- **`schema_validate`** — checks for fields as observation categories in the note body (e.g., `- [status] active`).
+
+A field stored only in frontmatter is not checked by `schema_validate`. If that field is required by the schema, it must also appear as an observation category or validation will report it as missing. A field stored only in observations can't be metadata-filtered. For fields you need both to query and to validate (like `status`, `current_step`), keep them in both places and keep them in sync. For fields only needed for one purpose, one location is fine.
 
 Validation reports:
 - **Missing required fields** — the note lacks a field the schema requires (as an observation category)

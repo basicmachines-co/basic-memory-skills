@@ -5,13 +5,13 @@ description: "Task management via Basic Memory schemas: create, track, and resum
 
 # Memory Tasks
 
-Manage work-in-progress using Basic Memory's schema system. Tasks are just notes with `type: Task` — they live in the knowledge graph, validate against a schema, and survive context compaction.
+Manage work-in-progress using Basic Memory's schema system. Tasks are just notes with `type: task` — they live in the knowledge graph, validate against a schema, and survive context compaction.
 
 ## When to Use
 
 - **Starting multi-step work** (3+ steps, or anything that might outlast the context window)
 - **After compaction/restart** — search for active tasks to resume
-- **Pre-compaction flush** — update all active tasks with current state
+- **Pause protocol** — update all active tasks with current state before compaction
 - **On demand** — user asks to create, check, or manage tasks
 
 ## Task Schema
@@ -78,29 +78,48 @@ What future-you needs to pick up this work. Include:
 )
 ```
 
-**Why both frontmatter and observations?** Fields in `metadata` (stored as frontmatter) power `search_notes` with `metadata_filters`. Fields as observations (`- [status] active`) power `schema_validate`. Include queryable fields in both places for full coverage.
+### Why Both Frontmatter and Observations?
+
+Frontmatter and observations serve different access patterns:
+
+- **Frontmatter** (`metadata`) → powers `search_notes` with `metadata_filters`. This is how agents find tasks by status, priority, etc.
+- **Observations** (`- [status] active`) → powers `schema_validate`. This is how the schema system checks conformance.
+
+Any schema-required fields must exist as observations, because `schema_validate` only recognizes required fields when they appear as observation categories. For Task notes, that includes `description` and any other non-optional schema fields.
+
+Duplicate only the subset of fields you want to metadata-filter (like `status` and `current_step`) into frontmatter, and keep those duplicated values in sync with the observations. Don't let the two diverge — if frontmatter says `status: done` but observations say `[status] active`, you have a split-brain state.
 
 ### Key Principles
 
 - **Steps are concrete and checkable** — "Implement X in file Y", not "figure out stuff"
 - **Context is for post-amnesia resumption** — Write it as if explaining to a smart person who knows nothing about what you've been doing
 - **Relations link to other entities** — `parent_task [[Other Task]]`, `related_to [[Some Note]]`
-- **`note_types` is case-sensitive** — `write_note(note_type="Task")` stores the type as lowercase `task` in frontmatter. Use `note_types=["task"]` (lowercase) in search queries.
+- **`note_type` is normalized to lowercase** — `write_note(note_type="Task")` stores the type as lowercase `task` in frontmatter. Use lowercase values such as `note_types=["task"]` in search queries.
 
-## Resuming After Compaction
+## Resume Protocol
 
-On session start or after compaction:
+On session start or after compaction, follow this sequence:
 
-1. **Search for active tasks:**
-   ```python
-   search_notes(note_types=["task"], status="active")
-   ```
+```
+1. SEARCH   → search_notes(note_types=["task"], status="active")
+2. READ     → read_note(identifier="<task-permalink>")
+3. VALIDATE → confirm current_step matches the step checkboxes
+4. CONTINUE → execute the next unchecked step
+```
 
-2. **Read the task note** to get full context
+Cross-check `current_step` against the checkbox list — the checkboxes are the ground truth. Context compaction can leave step counts stale.
 
-3. **Resume from `current_step`** using the `context` field
+```python
+# Step 1: Find active work
+search_notes(note_types=["task"], status="active")
 
-4. **Update as you progress** — increment `current_step`, update context, check off steps
+# Step 2: Read the full task
+read_note(identifier="tasks/my-active-task")
+
+# Step 3: Validate — current_step is the next step to execute, so the last checked box should be current_step - 1
+# If current_step=3 but steps 1, 2, 3 are all checked → update current_step to 4
+# If steps 1, 2 are checked but current_step=3 → correct, continue with step 3
+```
 
 ## Updating Tasks
 
@@ -131,16 +150,36 @@ completed: YYYY-MM-DD
 
 Add a brief summary of what was accomplished and any follow-up needed.
 
-## Pre-Compaction Flush
+## Pause Protocol
 
-When a compaction event is imminent:
+Before any `/compact` event, end of session, or context-threatening operation:
 
-1. Find all active tasks: `search_notes(note_types=["task"], status="active")`
-2. For each, update:
-   - `current_step` to reflect actual progress
-   - `context` with everything needed to resume
-   - Step checkboxes to show what's done
-3. This is **critical** — context not written down is context lost
+```
+1. FIND ALL   → search_notes(note_types=["task"], status="active")
+2. FOR EACH   → update current_step, context, and step checkboxes
+3. VERIFY     → read_note to confirm the update landed correctly
+```
+
+What to write in `context` before pausing:
+- What you just completed (1 sentence)
+- What the next step requires (key inputs, file paths, decisions)
+- Any blockers discovered
+- Anything that would be frustrating to re-discover
+
+```python
+edit_note(
+  identifier="tasks/my-active-task",
+  operation="find_replace",
+  find_text="## Context\nWhat future-you needs to pick up this work. Include:\n- Key file paths and repos involved\n- Decisions already made and why\n- What was tried and what worked/didn't\n- Where to look for related context",
+  content="""## Context
+Completed: Implemented the database migration script at db/migrate/001.py.
+Next: Run migration against staging. Need DATABASE_URL env var (check .env.staging).
+Blocker: None.
+Note: The migration is idempotent — safe to re-run if interrupted."""
+)
+```
+
+Context not written before `/compact` is context permanently lost.
 
 ## Querying Tasks
 
@@ -159,8 +198,9 @@ With BM's schema system, tasks are fully queryable:
 ## Guidelines
 
 - **One task per unit of work** — Don't cram multiple projects into one task
-- **Externalize early** — If you think "I should remember this", write it down NOW
+- **Externalize early** — If you think "I should remember this", write it down NOW — not after the next tool call
 - **Context > steps** — Steps tell you what to do; context tells you why and how
 - **Close finished tasks** — Don't leave completed work as `active`
 - **Link related tasks** — Use `parent_task [[X]]` or relations to connect related work
 - **Schema validation is your friend** — Run `schema_validate(noteType="Task")` periodically to catch incomplete tasks
+- **Keep task notes dense** — Task notes compete for context window space. Every token should earn its place: concrete steps, essential context, no filler. Stale context in a task note is [context distraction](https://github.com/tyler555g/best-practices/blob/main/packages/content/technology_and_information/data_science_and_ai/context-engineering.md) — it dilutes signal when the task is retrieved

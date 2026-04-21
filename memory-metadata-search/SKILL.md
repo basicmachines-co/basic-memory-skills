@@ -175,10 +175,11 @@ search_notes("OAuth", metadata_filters={"status": "in-progress"})
 
 ## Guidelines
 
-- **Use metadata search for structured queries.** If you're looking for notes by a known field value (status, priority, type), metadata filters are more precise than text search.
+- **Precision retrieval over broad loading.** If you're looking for notes by a known field value (status, priority, type), metadata filters are more precise than text search. This aligns with the [Select principle](https://github.com/tyler555g/best-practices/blob/main/packages/content/technology_and_information/data_science_and_ai/context-engineering.md) — retrieve only what's needed for the current step.
 - **Use text search for content queries.** If you're looking for notes *about* something, text search is better. Combine both when you need precision.
 - **Custom fields are free.** Any YAML key you put in frontmatter becomes queryable — no schema or configuration required.
 - **Multiple filters are AND.** `{"status": "active", "priority": "high"}` requires both conditions.
 - **Omit `query` for filter-only searches.** `search_notes(metadata_filters={"status": "active"})` works without a text query.
 - **Dot notation for nesting.** Access nested YAML structures with dots: `{"schema.version": "2"}` queries the `version` key inside a `schema` object.
 - **Tags shortcut is convenient but limited.** `tags` and `status` are sugar for common fields. For anything else, use `metadata_filters` directly.
+- **Consistency enables filtering.** Metadata filters require consistent values across notes. If you use `status: active` sometimes and `status: in-progress` other times for the same concept, filters break. Use schemas to enforce consistency.
